@@ -1,5 +1,6 @@
 import model.Compra;
 import model.Comprador;
+import model.CompradorVIP;
 import model.Evento;
 import model.SistemaGestionBoletos;
 
@@ -33,7 +34,12 @@ public class Main {
 
                 System.out.print("\nIngrese su nombre: ");
                 String nombre = scanner.nextLine();
-                Comprador comprador = new Comprador(nombre);
+
+                System.out.print("Es un comprador VIP? (s/n): ");
+                String esVip = scanner.nextLine();
+                Comprador comprador = esVip.equalsIgnoreCase("s")
+                        ? new CompradorVIP(nombre)
+                        : new Comprador(nombre);
 
                 System.out.print("Ingrese la cantidad de boletos a comprar: ");
                 int cantidad = Integer.parseInt(scanner.nextLine());
@@ -45,8 +51,12 @@ public class Main {
                 System.out.print("Tiene un codigo de descuento? Ingreselo o escriba no: ");
                 String codigo = scanner.nextLine();
                 if (!codigo.equalsIgnoreCase("no") && !codigo.isBlank()) {
-                    compra.aplicarDescuento(codigo);
-                    System.out.println("Total con descuento: $" + compra.getTotal());
+                    boolean descuentoAplicado = compra.aplicarDescuento(codigo);
+                    if (descuentoAplicado) {
+                        System.out.println("Total con descuento: $" + compra.getTotal());
+                    } else {
+                        System.out.println("Codigo de descuento invalido. No se aplico ningun descuento.");
+                    }
                 }
 
                 boolean exito = compra.confirmarPago();
@@ -63,13 +73,17 @@ public class Main {
                     System.out.println("No se pudo completar la compra: stock insuficiente.");
                 }
 
+            } catch (NumberFormatException e) {
+                System.out.println("\nError: debe ingresar solo numeros en ese campo.");
+                System.out.println("La operacion no se completo, pero el sistema sigue funcionando.");
             } catch (Exception e) {
                 System.out.println("\nError controlado: " + e.getMessage());
                 System.out.println("La operacion no se completo, pero el sistema sigue funcionando.");
             }
 
             System.out.print("\nDesea realizar otra compra? (s/n): ");
-            continuar = scanner.nextLine().charAt(0);
+            String respuesta = scanner.nextLine();
+            continuar = respuesta.isBlank() ? 'n' : respuesta.charAt(0);
 
         } while (continuar == 's' || continuar == 'S');
 

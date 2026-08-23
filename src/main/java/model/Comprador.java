@@ -1,14 +1,8 @@
 package model;
 
-public class Comprador {
-
-    private String nombre;
+public class Comprador extends Persona {
 
     public Comprador(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getNombre() {
-        return nombre;
+        super(nombre);
     }
 }

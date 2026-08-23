@@ -1,7 +1,13 @@
 package model;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SistemaGestionBoletos {
@@ -91,6 +97,6 @@ public class SistemaGestionBoletos {
     }
 
     public List<Evento> getListaEventos() {
-        return listaEventos;
+        return Collections.unmodifiableList(listaEventos);
     }
 }

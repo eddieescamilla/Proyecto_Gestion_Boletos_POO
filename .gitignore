@@ -4,6 +4,7 @@ build/
 !**/src/Main/**/build/
 !**/src/test/**/build/
 .kotlin
+.code-review-graph
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

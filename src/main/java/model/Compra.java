@@ -9,6 +9,9 @@ public class Compra {
     private boolean estadoTransaccion;
 
     public Compra(Evento evento, Comprador comprador, int cantidadBoletos) {
+        if (cantidadBoletos <= 0) {
+            throw new IllegalArgumentException("La cantidad de boletos debe ser mayor a cero.");
+        }
         this.evento = evento;
         this.comprador = comprador;
         this.cantidadBoletos = cantidadBoletos;
@@ -16,26 +19,36 @@ public class Compra {
     }
 
     public double calcularTotal() {
-        total = cantidadBoletos * evento.getPrecioBoleto();
+        double subtotal = cantidadBoletos * evento.getPrecioBoleto();
+        total = subtotal - (subtotal * (comprador.obtenerDescuentoAdicional() / 100.0));
         return total;
     }
 
-    public void aplicarDescuento(String codigo) {
-        double porcentaje;
+    public boolean aplicarDescuento(String codigo) {
+        Descuento descuento = obtenerDescuentoPorCodigo(codigo);
+        if (descuento == null) {
+            return false;
+        }
+        return aplicarDescuento(descuento);
+    }
 
+    public boolean aplicarDescuento(Descuento descuento) {
+        if (descuento == null) {
+            return false;
+        }
+        total = descuento.aplicar(total);
+        return true;
+    }
+
+    private Descuento obtenerDescuentoPorCodigo(String codigo) {
         switch (codigo) {
             case "DESC10":
-                porcentaje = 10.0;
-                break;
+                return new DescuentoPorcentaje(10.0);
             case "DESC5":
-                porcentaje = 5.0;
-                break;
+                return new DescuentoPorcentaje(5.0);
             default:
-                return; // codigo no valido, no se aplica descuento
+                return null;
         }
-
-        double monto = total * (porcentaje / 100.0);
-        total -= monto;
     }
 
     public boolean confirmarPago() {
@@ -64,7 +77,7 @@ public class Compra {
         return comprador;
     }
 
-    public boolean getEstadoTransaccion() {
+    public boolean isEstadoTransaccion() {
         return estadoTransaccion;
     }
 }
