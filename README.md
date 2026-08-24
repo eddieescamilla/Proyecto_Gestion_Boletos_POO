@@ -1,5 +1,11 @@
 # Sistema de Gestión de Venta de Boletos para Eventos
 
+## Integrantes
+
+- José Edgardo Rosales Escamilla [00129426]
+- Xiomara Molina Amaya [00253220]
+- Daniel Eduardo García Hernández [00220826]
+
 ## Descripción
 
 Desarrollo de clases e implementación de patrones de diseño para estructurar y
