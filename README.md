@@ -12,12 +12,18 @@ negocio, la interfaz gráfica y la persistencia de datos.
 
 Diagramas de clases e implementación en Java.
 
+## Diagrama de clases
+
+![Diagrama de clases](docs/diagrama-clases.jpg)
+
 ## Estructura del proyecto
 ```
 Proyecto_Gestion_Boletos_POO/
 ├── build.gradle
 ├── settings.gradle
 ├── eventos.txt              (no incluido en el repo, ver abajo)
+├── docs/
+│   └── diagrama-clases.jpg
 └── src/
     └── main/
         └── java/
