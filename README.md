@@ -2,10 +2,15 @@
 
 ## Descripción
 
-Sistema de consola en Java para la compra de boletos de eventos. Implementa
-herencia y polimorfismo para el manejo de compradores (con descuento
-automático para clientes VIP) y de códigos de descuento, promoviendo una
-arquitectura modular que facilita el mantenimiento y la extensión del sistema.
+Desarrollo de clases e implementación de patrones de diseño para estructurar y
+gestionar el sistema de compra de boletos para eventos, promoviendo una
+arquitectura modular y robusta que mejora la organización del sistema,
+facilita su mantenimiento y optimiza la integración entre la lógica de
+negocio, la interfaz gráfica y la persistencia de datos.
+
+## Primer entregable
+
+Diagramas de clases e implementación en Java.
 
 ## Estructura del proyecto
 ```
