@@ -14,9 +14,17 @@ arquitectura modular y robusta que mejora la organización del sistema,
 facilita su mantenimiento y optimiza la integración entre la lógica de
 negocio, la interfaz gráfica y la persistencia de datos.
 
-## Primer entregable
+## Tercer entregable
 
-Diagramas de clases e implementación en Java.
+Actualización de diagramas de clases y desarrollo en Java, integrando
+**clases abstractas** e **interfaces** (contratos) al diseño:
+
+- `Persona` se convierte en **clase abstracta**: modela el concepto común a
+  `Comprador` y `CompradorVIP`, pero no puede instanciarse por sí sola.
+- `Descuento` se convierte en **interfaz**: define el contrato
+  `aplicar(double)` que implementan `DescuentoPorcentaje` y `DescuentoFijo`.
+- `Compra` depende del contrato `Descuento`, no de una implementación
+  concreta, aplicando polimorfismo.
 
 ## Diagrama de clases
 
@@ -36,13 +44,13 @@ Proyecto_Gestion_Boletos_POO/
             ├── Main.java
             └── model/
                 ├── Evento.java
-                ├── Persona.java
+                ├── Persona.java                 (clase abstracta)
                 ├── Comprador.java
                 ├── CompradorVIP.java
                 ├── Compra.java
-                ├── Descuento.java
-                ├── DescuentoPorcentaje.java
-                ├── DescuentoFijo.java
+                ├── Descuento.java               (interfaz)
+                ├── DescuentoPorcentaje.java     (implements Descuento)
+                ├── DescuentoFijo.java           (implements Descuento)
                 └── SistemaGestionBoletos.java
 ```
 
