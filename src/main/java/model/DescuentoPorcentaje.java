@@ -1,6 +1,6 @@
 package model;
 
-public class DescuentoPorcentaje extends Descuento {
+public class DescuentoPorcentaje implements Descuento {
 
     private double porcentaje;
 

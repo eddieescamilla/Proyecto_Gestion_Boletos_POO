@@ -1,8 +1,6 @@
 package model;
 
-public class Descuento {
+public interface Descuento {
 
-    public double aplicar(double montoOriginal) {
-        return montoOriginal;
-    }
+    double aplicar(double montoOriginal);
 }
