@@ -1,6 +1,6 @@
 package model;
 
-public class DescuentoFijo extends Descuento {
+public class DescuentoFijo implements Descuento {
 
     private double monto;
 
