@@ -93,3 +93,4 @@ cp eventos.txt out/
 cd out
 java Main
 ```
+## Tercer entregable Diagramas de clases que incorporan la implementacion de un patron de diseno y su desarrollo en Java. **Patron implementado:** Strategy, aplicado al calculo de descuentos sobre el total de una compra. Las clases del patron (`Descuento`, `DescuentoFijo`, `DescuentoPorcentaje`) se organizan en el paquete `patrones.strategy`, separado del paquete `model` que contiene la logica de negocio principal.
