@@ -1,5 +1,9 @@
 package model;
 
+import model.patrones.strategy.Descuento;
+import model.patrones.strategy.DescuentoFijo;
+import model.patrones.strategy.DescuentoPorcentaje;
+
 public class Compra {
 
     private Evento evento;
