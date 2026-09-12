@@ -4,8 +4,8 @@ public class CompradorVIP extends Comprador {
 
     private static final double DESCUENTO_VIP_PORCENTAJE = 10.0;
 
-    public CompradorVIP(String nombre) {
-        super(nombre);
+    public CompradorVIP(String nombre, String correo, String clave) {
+        super(nombre, correo, clave);
     }
 
     @Override
