@@ -1,13 +1,24 @@
 package model;
 
-public class Evento {
+import java.time.LocalDate;
 
+public class Evento {
     private String nombreEvento;
+    private String categoria;
+    private LocalDate fecha;
+    private String lugar;
     private int inventarioDisponible;
     private double precioBoleto;
 
-    public Evento(String nombreEvento, int inventarioDisponible, double precioBoleto) {
+    public Evento(String nombreEvento, String categoria, LocalDate fecha, String lugar,
+                  int inventarioDisponible, double precioBoleto) {
+        if (fecha == null || fecha.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("La fecha del evento no puede ser pasada.");
+        }
         this.nombreEvento = nombreEvento;
+        this.categoria = categoria;
+        this.fecha = fecha;
+        this.lugar = lugar;
         this.inventarioDisponible = inventarioDisponible;
         this.precioBoleto = precioBoleto;
     }
@@ -26,8 +37,24 @@ public class Evento {
         inventarioDisponible -= cantidad;
     }
 
+    public boolean estaAgotado() {
+        return inventarioDisponible <= 0;
+    }
+
     public String getNombreEvento() {
         return nombreEvento;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public String getLugar() {
+        return lugar;
     }
 
     public int getInventarioDisponible() {
@@ -40,6 +67,8 @@ public class Evento {
 
     @Override
     public String toString() {
-        return nombreEvento + " (Stock: " + inventarioDisponible + ", Precio: $" + precioBoleto + ")";
+        String estado = estaAgotado() ? "AGOTADO" : ("Stock: " + inventarioDisponible);
+        return nombreEvento + " [" + categoria + "] - " + fecha + " en " + lugar
+                + " (" + estado + ", Precio: $" + precioBoleto + ")";
     }
 }

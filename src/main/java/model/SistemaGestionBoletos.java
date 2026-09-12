@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,19 +39,22 @@ public class SistemaGestionBoletos {
 
                 try {
                     String[] partes = linea.split("\\|");
-                    if (partes.length != 3) {
+                    if (partes.length != 6) {
                         throw new IllegalArgumentException("Formato incorrecto en la linea.");
                     }
 
                     String nombre = partes[0];
-                    int inventario = Integer.parseInt(partes[1]);
-                    double precio = Double.parseDouble(partes[2]);
+                    String categoria = partes[1];
+                    LocalDate fecha = LocalDate.parse(partes[2]);
+                    String lugar = partes[3];
+                    int inventario = Integer.parseInt(partes[4]);
+                    double precio = Double.parseDouble(partes[5]);
 
                     if (nombre.isEmpty()) throw new IllegalArgumentException("El nombre no puede estar vacio.");
                     if (inventario < 0) throw new IllegalArgumentException("El inventario no puede ser negativo.");
                     if (precio <= 0) throw new IllegalArgumentException("El precio debe ser mayor a cero.");
 
-                    listaEventos.add(new Evento(nombre, inventario, precio));
+                    listaEventos.add(new Evento(nombre, categoria, fecha, lugar, inventario, precio));
 
                 } catch (Exception e) {
                     System.out.println("Advertencia: se omitio la linea " + numeroLinea
@@ -72,6 +76,9 @@ public class SistemaGestionBoletos {
         try (BufferedWriter escritor = new BufferedWriter(new FileWriter(archivoEventos))) {
             for (Evento evento : listaEventos) {
                 escritor.write(evento.getNombreEvento() + "|"
+                        + evento.getCategoria() + "|"
+                        + evento.getFecha() + "|"
+                        + evento.getLugar() + "|"
                         + evento.getInventarioDisponible() + "|"
                         + evento.getPrecioBoleto());
                 escritor.newLine();

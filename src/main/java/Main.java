@@ -1,8 +1,13 @@
-import model.Compra;
+import hilos.HiloMensaje;
 import model.Comprador;
-import model.CompradorVIP;
+import model.Compra;
 import model.Evento;
+import model.GestorUsuarios;
+import model.RepositorioCompras;
+import model.RolUsuario;
 import model.SistemaGestionBoletos;
+import model.Usuario;
+import ui.ConsolaUI;
 
 import java.util.Scanner;
 
@@ -10,46 +15,97 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        SistemaGestionBoletos sistema = new SistemaGestionBoletos("eventos.txt");
+        ConsolaUI consola = new ConsolaUI(scanner);
+        SistemaGestionBoletos sistemaEventos = new SistemaGestionBoletos("eventos.txt");
+        GestorUsuarios gestorUsuarios = new GestorUsuarios("usuarios.txt");
+        RepositorioCompras repositorioCompras = new RepositorioCompras("compras.txt");
+
+        ejecutarHilosDemo();
 
         try {
-            sistema.cargarEventos();
-            System.out.println("Eventos cargados desde 'eventos.txt': "
-                    + sistema.getListaEventos().size() + " evento(s).");
+            sistemaEventos.cargarEventos();
+            gestorUsuarios.cargarUsuarios();
+            System.out.println("Sistema cargado correctamente.");
         } catch (RuntimeException e) {
             System.out.println("Error critico del sistema: " + e.getMessage());
+            scanner.close();
             return;
         }
 
-        char continuar = 's';
+        Usuario usuarioActual = autenticar(consola, gestorUsuarios);
+        if (usuarioActual == null) {
+            System.out.println("No se pudo iniciar sesion. Cerrando el sistema.");
+            scanner.close();
+            return;
+        }
+
+        if (usuarioActual.getRol() == RolUsuario.ADMINISTRADOR) {
+            System.out.println("\nBienvenido, " + usuarioActual.getNombre() + " (Administrador).");
+            System.out.println("Las funciones de administracion se implementaran en las proximas semanas.");
+            scanner.close();
+            return;
+        }
+
+        Comprador comprador = (Comprador) usuarioActual;
+        ejecutarFlujoCompra(consola, sistemaEventos, repositorioCompras, comprador);
+
+        System.out.println("Gracias por su compra. Hasta luego!");
+        scanner.close();
+    }
+
+    private static Usuario autenticar(ConsolaUI consola, GestorUsuarios gestorUsuarios) {
+        while (true) {
+            int opcion;
+            try {
+                opcion = consola.leerOpcionInicio();
+            } catch (NumberFormatException e) {
+                System.out.println("Opcion invalida.");
+                continue;
+            }
+
+            if (opcion == 1) {
+                String correo = consola.leerCorreo();
+                String clave = consola.leerClave();
+                Usuario usuario = gestorUsuarios.iniciarSesion(correo, clave);
+                if (usuario != null) {
+                    return usuario;
+                }
+                System.out.println("Credenciales invalidas.");
+            } else if (opcion == 2) {
+                String nombre = consola.leerNombreRegistro();
+                String correo = consola.leerCorreo();
+                String clave = consola.leerClave();
+                boolean exito = gestorUsuarios.registrar(nombre, correo, clave);
+                if (exito) {
+                    System.out.println("Registro exitoso. Ahora inicie sesion.");
+                } else {
+                    System.out.println("No se pudo registrar: el correo ya existe o los datos son invalidos.");
+                }
+            } else {
+                System.out.println("Opcion invalida.");
+            }
+        }
+    }
+
+    private static void ejecutarFlujoCompra(ConsolaUI consola, SistemaGestionBoletos sistema,
+                                            RepositorioCompras repositorioCompras, Comprador comprador) {
+        boolean continuar = true;
 
         do {
             try {
                 System.out.println("\n=== Sistema de Gestion de Boletos ===");
                 sistema.mostrarEventos();
 
-                System.out.print("Opcion: ");
-                int opcion = Integer.parseInt(scanner.nextLine());
+                int opcion = consola.leerOpcion();
                 Evento evento = sistema.seleccionarEvento(opcion);
 
-                System.out.print("\nIngrese su nombre: ");
-                String nombre = scanner.nextLine();
-
-                System.out.print("Es un comprador VIP? (s/n): ");
-                String esVip = scanner.nextLine();
-                Comprador comprador = esVip.equalsIgnoreCase("s")
-                        ? new CompradorVIP(nombre)
-                        : new Comprador(nombre);
-
-                System.out.print("Ingrese la cantidad de boletos a comprar: ");
-                int cantidad = Integer.parseInt(scanner.nextLine());
+                int cantidad = consola.leerCantidadBoletos();
 
                 Compra compra = new Compra(evento, comprador, cantidad);
                 double total = compra.calcularTotal();
                 System.out.println("\nTotal a pagar: $" + total);
 
-                System.out.print("Tiene un codigo de descuento? Ingreselo o escriba no: ");
-                String codigo = scanner.nextLine();
+                String codigo = consola.leerCodigoDescuento();
                 if (!codigo.equalsIgnoreCase("no") && !codigo.isBlank()) {
                     boolean descuentoAplicado = compra.aplicarDescuento(codigo);
                     if (descuentoAplicado) {
@@ -62,13 +118,13 @@ public class Main {
                 boolean exito = compra.confirmarPago();
                 if (exito) {
                     sistema.guardarEventos();
+                    repositorioCompras.guardarCompra(compra);
                     System.out.println("\n=== Confirmacion de Compra ===");
                     System.out.println("Comprador          : " + comprador.getNombre());
                     System.out.println("Evento             : " + evento.getNombreEvento());
                     System.out.println("Boletos comprados  : " + compra.getCantidadBoletos());
                     System.out.println("Total pagado       : $" + compra.getTotal());
                     System.out.println("Inventario restante: " + evento.getInventarioDisponible() + " boletos");
-                    System.out.println("Inventario actualizado correctamente.");
                 } else {
                     System.out.println("No se pudo completar la compra: stock insuficiente.");
                 }
@@ -81,13 +137,23 @@ public class Main {
                 System.out.println("La operacion no se completo, pero el sistema sigue funcionando.");
             }
 
-            System.out.print("\nDesea realizar otra compra? (s/n): ");
-            String respuesta = scanner.nextLine();
-            continuar = respuesta.isBlank() ? 'n' : respuesta.charAt(0);
+            continuar = consola.leerContinuar();
 
-        } while (continuar == 's' || continuar == 'S');
+        } while (continuar);
+    }
 
-        System.out.println("Gracias por su compra. Hasta luego!");
-        scanner.close();
+    private static void ejecutarHilosDemo() {
+        HiloMensaje hilo1 = new HiloMensaje("Hilo-1", "Sistema iniciado correctamente");
+        HiloMensaje hilo2 = new HiloMensaje("Hilo-2", "Verificando inventario de eventos");
+
+        hilo1.start();
+        hilo2.start();
+
+        try {
+            hilo1.join();
+            hilo2.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
