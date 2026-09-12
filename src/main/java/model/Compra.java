@@ -1,8 +1,8 @@
 package model;
 
-import model.patrones.strategy.Descuento;
-import model.patrones.strategy.DescuentoFijo;
-import model.patrones.strategy.DescuentoPorcentaje;
+import patrones.strategy.Descuento;
+import patrones.strategy.DescuentoFijo;
+import patrones.strategy.DescuentoPorcentaje;
 
 public class Compra {
 
