@@ -1,8 +1,8 @@
 package model;
 
-public class Comprador extends Persona {
+public class Comprador extends Usuario {
 
-    public Comprador(String nombre) {
-        super(nombre);
+    public Comprador(String nombre, String correo, String clave) {
+        super(nombre, correo, clave, RolUsuario.CLIENTE);
     }
 }
