@@ -1,4 +1,4 @@
-package model.patrones.strategy;
+package patrones.strategy;
 
 public class DescuentoFijo implements Descuento {
 
