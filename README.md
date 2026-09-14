@@ -3,8 +3,8 @@
 ## Integrantes
 
 - José Edgardo Rosales Escamilla [00129426]
-- Xiomara Molina Amaya [00253220]
-- Daniel Eduardo García Hernández [00220826]
+- Xiomara Molina Amaya [00220826]
+- Daniel Eduardo García Hernández [00253220]
 
 ## Descripción
 
