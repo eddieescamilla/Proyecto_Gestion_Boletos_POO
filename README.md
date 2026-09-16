@@ -105,3 +105,11 @@ datos por consola se centraliza en `ui.ConsolaUI`. Además, se agrega
 autenticación real (`model.GestorUsuarios`, `model.Usuario`,
 `model.Administrador`), se extiende `Evento` con categoría, fecha y lugar,
 y se registra cada compra exitosa mediante `model.RepositorioCompras`.
+
+## Sprint 2 (Semanas 7 y 8)
+
+Este sprint cubre del 21 de septiembre al 4 de octubre. Las historias pendientes son HU-05 a HU-09, distribuidas entre Xiomara (Compra/Reserva) y Daniel (Administración/Reportes). Eddie coordina el seguimiento del tablero y la revisión de Pull Requests.
+
+Ver el detalle de planificación, prioridades y riesgos en [`docs/decisiones-sprint7-8.md`](./docs/decisiones-sprint7-8.md) y en el tablero del proyecto en GitHub Projects.
+
+**Estado al cierre de la semana 6:** HU-01 a HU-04 completadas. HU-05 a HU-09 planificadas para Sprint 2, sin iniciar código todavía.
