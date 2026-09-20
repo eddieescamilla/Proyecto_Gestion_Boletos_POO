@@ -17,7 +17,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         ConsolaUI consola = new ConsolaUI(scanner);
         SistemaGestionBoletos sistemaEventos = new SistemaGestionBoletos("eventos.txt");
-        GestorUsuarios gestorUsuarios = new GestorUsuarios("usuarios.txt");
+        GestorUsuarios gestorUsuarios = new GestorUsuarios();
         RepositorioCompras repositorioCompras = new RepositorioCompras("compras.txt");
 
         ejecutarHilosDemo();

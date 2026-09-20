@@ -17,8 +17,8 @@ public class UsuarioPersistencia implements DAO<Usuario> {
 
     private Connection conexion;
 
-    public UsuarioPersistencia(String rutaBD) {
-        this.conexion = ConexionBD.obtenerConexion(rutaBD);
+    public UsuarioPersistencia() {
+        this.conexion = ConexionBD.obtenerConexion();
     }
 
     @Override

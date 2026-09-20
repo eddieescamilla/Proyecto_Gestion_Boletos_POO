@@ -14,7 +14,7 @@ public class ConexionBD {
 
     private static Connection conexion;
 
-    public static Connection obtenerConexion(String rutaArchivoBD) {
+    public static Connection obtenerConexion() {
         if (conexion == null) {
             try {
                 conexion = DriverManager.getConnection(URL, USUARIO, CLAVE);

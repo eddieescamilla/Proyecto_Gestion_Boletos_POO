@@ -6,8 +6,8 @@ public class GestorUsuarios {
 
     private UsuarioPersistencia persistencia;
 
-    public GestorUsuarios(String rutaBD) {
-        this.persistencia = new UsuarioPersistencia(rutaBD);
+    public GestorUsuarios() {
+        this.persistencia = new UsuarioPersistencia();
     }
 
     public boolean cargarUsuarios() {
