@@ -8,12 +8,16 @@ import java.sql.Statement;
 
 public class ConexionBD {
 
+    private static final String URL = "jdbc:postgresql://localhost:5432/boletos";
+    private static final String USUARIO = "boletos";
+    private static final String CLAVE = "boletos123";
+
     private static Connection conexion;
 
     public static Connection obtenerConexion(String rutaArchivoBD) {
         if (conexion == null) {
             try {
-                conexion = DriverManager.getConnection("jdbc:sqlite:" + rutaArchivoBD);
+                conexion = DriverManager.getConnection(URL, USUARIO, CLAVE);
                 crearTablas(conexion);
                 sembrarDatosIniciales(conexion);
             } catch (SQLException e) {
@@ -41,7 +45,7 @@ public class ConexionBD {
                     "precio_boleto REAL NOT NULL)");
 
             statement.execute("CREATE TABLE IF NOT EXISTS compras (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "id SERIAL PRIMARY KEY, " +
                     "correo_comprador TEXT NOT NULL, " +
                     "nombre_evento TEXT NOT NULL, " +
                     "categoria_evento TEXT NOT NULL, " +
