@@ -105,3 +105,15 @@ datos por consola se centraliza en `ui.ConsolaUI`. Además, se agrega
 autenticación real (`model.GestorUsuarios`, `model.Usuario`,
 `model.Administrador`), se extiende `Evento` con categoría, fecha y lugar,
 y se registra cada compra exitosa mediante `model.RepositorioCompras`.
+
+## Quinto entregable
+
+Actualización de diagramas UML: estructurando la capa de persistencia de
+datos utilizando patrón DAO y base de datos PostgreSQL (Docker).
+
+Se separa la lógica de negocio de la persistencia: el paquete `dao` define
+el contrato genérico (`DAO<T>`), y el paquete `persistencia` lo implementa
+mediante JDBC contra PostgreSQL (`UsuarioPersistencia`, `EventoPersistencia`,
+`CompraPersistencia`), con `ConexionBD`/`ConfigBD` gestionando la conexión.
+Se implementan HU-06 (historial de compras del cliente, con filtro por
+fecha) y HU-09 (reporte de ventas por categoría de evento).
