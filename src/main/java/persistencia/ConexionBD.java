@@ -8,16 +8,13 @@ import java.sql.Statement;
 
 public class ConexionBD {
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/boletos";
-    private static final String USUARIO = "boletos";
-    private static final String CLAVE = "boletos123";
-
     private static Connection conexion;
 
     public static Connection obtenerConexion() {
         if (conexion == null) {
             try {
-                conexion = DriverManager.getConnection(URL, USUARIO, CLAVE);
+                conexion = DriverManager.getConnection(
+                        ConfigBD.url(), ConfigBD.usuario(), ConfigBD.clave());
                 crearTablas(conexion);
                 sembrarDatosIniciales(conexion);
             } catch (SQLException e) {
