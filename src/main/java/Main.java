@@ -3,10 +3,11 @@ import model.Comprador;
 import model.Compra;
 import model.Evento;
 import model.GestorUsuarios;
-import model.RepositorioCompras;
+import model.HistorialCompras;
 import model.RolUsuario;
 import model.SistemaGestionBoletos;
 import model.Usuario;
+import persistencia.CompraPersistencia;
 import ui.ConsolaUI;
 
 import java.util.Scanner;
@@ -16,9 +17,11 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         ConsolaUI consola = new ConsolaUI(scanner);
-        SistemaGestionBoletos sistemaEventos = new SistemaGestionBoletos("eventos.txt");
+
+        SistemaGestionBoletos sistemaEventos = new SistemaGestionBoletos();
         GestorUsuarios gestorUsuarios = new GestorUsuarios();
-        RepositorioCompras repositorioCompras = new RepositorioCompras("compras.txt");
+        CompraPersistencia compraPersistencia = new CompraPersistencia();
+        HistorialCompras historialCompras = new HistorialCompras(compraPersistencia);
 
         ejecutarHilosDemo();
 
@@ -40,14 +43,13 @@ public class Main {
         }
 
         if (usuarioActual.getRol() == RolUsuario.ADMINISTRADOR) {
-            System.out.println("\nBienvenido, " + usuarioActual.getNombre() + " (Administrador).");
-            System.out.println("Las funciones de administracion se implementaran en las proximas semanas.");
+            ejecutarMenuAdministrador(consola, compraPersistencia, usuarioActual);
             scanner.close();
             return;
         }
 
         Comprador comprador = (Comprador) usuarioActual;
-        ejecutarFlujoCompra(consola, sistemaEventos, repositorioCompras, comprador);
+        ejecutarFlujoCompra(consola, sistemaEventos, compraPersistencia, historialCompras, comprador);
 
         System.out.println("Gracias por su compra. Hasta luego!");
         scanner.close();
@@ -87,13 +89,44 @@ public class Main {
         }
     }
 
+    private static void ejecutarMenuAdministrador(ConsolaUI consola, CompraPersistencia compraPersistencia,
+                                                  Usuario admin) {
+        System.out.println("\nBienvenido, " + admin.getNombre() + " (Administrador).");
+        System.out.println("1. Generar reporte de ventas por categoria");
+        System.out.println("2. Salir");
+        int opcion;
+        try {
+            opcion = consola.leerOpcion();
+        } catch (NumberFormatException e) {
+            System.out.println("Opcion invalida. Cerrando el sistema.");
+            return;
+        }
+
+        if (opcion == 1) {
+            String categoria = consola.leerCategoriaReporte();
+            System.out.println("\n" + compraPersistencia.generarReportePorCategoria(categoria));
+        }
+        System.out.println("El resto de funciones de administracion se implementaran en las proximas semanas.");
+    }
+
     private static void ejecutarFlujoCompra(ConsolaUI consola, SistemaGestionBoletos sistema,
-                                            RepositorioCompras repositorioCompras, Comprador comprador) {
+                                            CompraPersistencia compraPersistencia,
+                                            HistorialCompras historialCompras, Comprador comprador) {
         boolean continuar = true;
 
         do {
             try {
                 System.out.println("\n=== Sistema de Gestion de Boletos ===");
+                System.out.println("1. Ver eventos y comprar");
+                System.out.println("2. Ver mi historial de compras");
+                int menu = consola.leerOpcion();
+
+                if (menu == 2) {
+                    System.out.println(historialCompras.mostrarHistorial(comprador.getCorreo()));
+                    continuar = consola.leerContinuar();
+                    continue;
+                }
+
                 sistema.mostrarEventos();
 
                 int opcion = consola.leerOpcion();
@@ -117,8 +150,8 @@ public class Main {
 
                 boolean exito = compra.confirmarPago();
                 if (exito) {
-                    sistema.guardarEventos();
-                    repositorioCompras.guardarCompra(compra);
+                    sistema.actualizarInventario(evento);
+                    compraPersistencia.guardarCompra(compra);
                     System.out.println("\n=== Confirmacion de Compra ===");
                     System.out.println("Comprador          : " + comprador.getNombre());
                     System.out.println("Evento             : " + evento.getNombreEvento());

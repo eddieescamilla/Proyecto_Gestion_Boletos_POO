@@ -54,4 +54,8 @@ public class ConsolaUI {
         char c = respuesta.isBlank() ? 'n' : respuesta.charAt(0);
         return c == 's' || c == 'S';
     }
+    public String leerCategoriaReporte() {
+        System.out.print("Ingrese la categoria para el reporte: ");
+        return scanner.nextLine();
+    }
 }
