@@ -106,10 +106,22 @@ autenticación real (`model.GestorUsuarios`, `model.Usuario`,
 `model.Administrador`), se extiende `Evento` con categoría, fecha y lugar,
 y se registra cada compra exitosa mediante `model.RepositorioCompras`.
 
+## Quinto entregable
+
+Actualización de diagramas UML: estructurando la capa de persistencia de
+datos utilizando patrón DAO y base de datos PostgreSQL (Docker).
+
+Se separa la lógica de negocio de la persistencia: el paquete `dao` define
+el contrato genérico (`DAO<T>`), y el paquete `persistencia` lo implementa
+mediante JDBC contra PostgreSQL (`UsuarioPersistencia`, `EventoPersistencia`,
+`CompraPersistencia`), con `ConexionBD`/`ConfigBD` gestionando la conexión.
+Se implementan HU-06 (historial de compras del cliente, con filtro por
+fecha) y HU-09 (reporte de ventas por categoría de evento).
+
 ## Sprint 2 (Semanas 7 y 8)
 
-Este sprint cubre del 21 de septiembre al 4 de octubre. Las historias pendientes son HU-05 a HU-09, distribuidas entre Xiomara (Compra/Reserva) y Daniel (Administración/Reportes). Eddie coordina el seguimiento del tablero y la revisión de Pull Requests.
+Este sprint cubre del 21 de septiembre al 4 de octubre. Las historias pendientes son HU-05, HU-07 y HU-08, distribuidas entre Xiomara (Compra/Reserva) y Daniel (Administración/Reportes). Eddie coordina el seguimiento del tablero y la revisión de Pull Requests.
 
 Ver el detalle de planificación, prioridades y riesgos en [`docs/decisiones-sprint7-8.md`](./docs/decisiones-sprint7-8.md) y en el tablero del proyecto en GitHub Projects.
 
-**Estado al cierre de la semana 6:** HU-01 a HU-04 completadas. HU-05 a HU-09 planificadas para Sprint 2, sin iniciar código todavía.
+**Estado al cierre de la semana 6:** HU-01 a HU-04, HU-06 y HU-09 completadas. HU-05, HU-07 y HU-08 planificadas para Sprint 2, sin iniciar código todavía.

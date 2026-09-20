@@ -1,0 +1,92 @@
+package persistencia;
+
+import dao.DAO;
+import model.Administrador;
+import model.Comprador;
+import model.RolUsuario;
+import model.Usuario;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UsuarioPersistencia implements DAO<Usuario> {
+
+    private Connection conexion;
+
+    public UsuarioPersistencia() {
+        this.conexion = ConexionBD.obtenerConexion();
+    }
+
+    @Override
+    public boolean guardar(Usuario usuario) {
+        String sql = "INSERT INTO usuarios (correo, nombre, clave, rol, activo) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+            statement.setString(1, usuario.getCorreo());
+            statement.setString(2, usuario.getNombre());
+            statement.setString(3, usuario.getClave());
+            statement.setString(4, usuario.getRol().toString());
+            statement.setInt(5, usuario.isActivo() ? 1 : 0);
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            throw new RuntimeException("No se pudo guardar el usuario.", e);
+        }
+    }
+
+    @Override
+    public Usuario buscarPorId(String correo) {
+        String sql = "SELECT * FROM usuarios WHERE correo = ?";
+        try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+            statement.setString(1, correo);
+            try (ResultSet resultado = statement.executeQuery()) {
+                return resultado.next() ? mapearUsuario(resultado) : null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("No se pudo buscar el usuario.", e);
+        }
+    }
+
+    @Override
+    public List<Usuario> listarTodos() {
+        List<Usuario> usuarios = new ArrayList<>();
+        String sql = "SELECT * FROM usuarios";
+        try (PreparedStatement statement = conexion.prepareStatement(sql);
+             ResultSet resultado = statement.executeQuery()) {
+            while (resultado.next()) {
+                usuarios.add(mapearUsuario(resultado));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("No se pudo listar los usuarios.", e);
+        }
+        return usuarios;
+    }
+
+    @Override
+    public boolean eliminar(String correo) {
+        String sql = "DELETE FROM usuarios WHERE correo = ?";
+        try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+            statement.setString(1, correo);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("No se pudo eliminar el usuario.", e);
+        }
+    }
+
+    private Usuario mapearUsuario(ResultSet resultado) throws SQLException {
+        String nombre = resultado.getString("nombre");
+        String correo = resultado.getString("correo");
+        String clave = resultado.getString("clave");
+        RolUsuario rol = RolUsuario.valueOf(resultado.getString("rol"));
+        boolean activo = resultado.getInt("activo") == 1;
+
+        Usuario usuario = (rol == RolUsuario.ADMINISTRADOR)
+                ? new Administrador(nombre, correo, clave)
+                : new Comprador(nombre, correo, clave);
+        usuario.setActivo(activo);
+        return usuario;
+    }
+}
