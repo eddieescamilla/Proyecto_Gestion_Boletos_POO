@@ -15,7 +15,7 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
 
     private Connection conexion;
 
-    public CompraPersistencia(String rutaBD) {
+    public CompraPersistencia() {
         this.conexion = ConexionBD.obtenerConexion();
     }
 
