@@ -3,7 +3,7 @@ package persistencia;
 import dao.DAO;
 import model.Administrador;
 import model.Comprador;
-import model.RolUsuario;
+import catalogo.RolUsuario;
 import model.Usuario;
 
 import java.sql.Connection;
