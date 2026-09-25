@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      prefWidth="800" prefHeight="568">
+
+    <!-- Encabezado de la aplicacion: copiar igual en todas las pantallas -->
+    <HBox styleClass="encabezado">
+        <SVGPath content="M2,6 H22 V10 A2,2 0 0,0 22,14 V18 H2 V14 A2,2 0 0,0 2,10 Z"
+                 fill="WHITE"/>
+        <Label text="Gestión de Boletos" styleClass="encabezado-titulo"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <!-- En las demas pantallas, este Label muestra "Bienvenido, [nombre]" o "Administrador General" -->
+        <Label text=""/>
+    </HBox>
+
+    <!-- Contenido temporal: se reemplaza en feature/gui-autenticacion -->
+    <VBox alignment="CENTER" spacing="8" VBox.vgrow="ALWAYS">
+        <Label text="Iniciar sesión" styleClass="titulo"/>
+        <Label text="Pantalla en construcción" styleClass="subtitulo"/>
+    </VBox>
+</VBox>
