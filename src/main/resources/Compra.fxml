@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controladores.CompraController"
+      prefWidth="800" prefHeight="568">
+
+    <!-- Encabezado de la aplicacion -->
+    <HBox styleClass="encabezado">
+        <SVGPath content="M2,6 H22 V10 A2,2 0 0,0 22,14 V18 H2 V14 A2,2 0 0,0 2,10 Z"
+                 fill="WHITE"/>
+        <Label text="Gestión de Boletos" styleClass="encabezado-titulo"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="Bienvenido"/>
+    </HBox>
+
+    <!-- Contenido -->
+    <VBox spacing="16" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="20" right="24" bottom="20" left="24"/>
+        </padding>
+
+        <Label text="Comprar boletos" styleClass="titulo"/>
+
+        <HBox spacing="24" fillHeight="false">
+
+            <!-- Detalle del evento seleccionado -->
+            <VBox styleClass="tarjeta" spacing="4" prefWidth="340" minWidth="340">
+                <Label text="Detalle del evento" styleClass="etiqueta-campo"/>
+                <Separator>
+                    <VBox.margin>
+                        <Insets top="4" bottom="4"/>
+                    </VBox.margin>
+                </Separator>
+                <Label text="Evento" styleClass="subtitulo"/>
+                <Label fx:id="lblEvento" styleClass="etiqueta-campo"/>
+                <Label text="Categoría" styleClass="subtitulo"/>
+                <Label fx:id="lblCategoria"/>
+                <Label text="Fecha" styleClass="subtitulo"/>
+                <Label fx:id="lblFecha"/>
+                <Label text="Lugar" styleClass="subtitulo"/>
+                <Label fx:id="lblLugar"/>
+                <Label text="Precio unitario" styleClass="subtitulo"/>
+                <Label fx:id="lblPrecio" styleClass="precio"/>
+                <Label text="Disponibles" styleClass="subtitulo"/>
+                <Label fx:id="lblDisponibles" styleClass="etiqueta-campo"/>
+            </VBox>
+
+            <!-- Datos de la compra -->
+            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                <Label text="Cantidad de boletos" styleClass="etiqueta-campo"/>
+                <TextField fx:id="txtCantidad" promptText="Ingresa la cantidad (ej. 2)"/>
+
+                <Label text="Código de descuento" styleClass="etiqueta-campo"/>
+                <HBox spacing="8">
+                    <TextField fx:id="txtCodigoDescuento" promptText="DESC10" HBox.hgrow="ALWAYS"/>
+                    <Button text="Aplicar" styleClass="boton-secundario" onAction="#aplicarDescuento"/>
+                </HBox>
+
+                <Label text="Método de pago" styleClass="etiqueta-campo"/>
+                <ComboBox fx:id="cmbMetodoPago" promptText="Selecciona un método" maxWidth="Infinity"/>
+
+                <HBox styleClass="tarjeta" alignment="CENTER" style="-fx-padding: 12;">
+                    <VBox.margin>
+                        <Insets top="8"/>
+                    </VBox.margin>
+                    <Label fx:id="lblTotal" text="Total: $0.00" styleClass="total"/>
+                </HBox>
+
+                <HBox spacing="12">
+                    <VBox.margin>
+                        <Insets top="8"/>
+                    </VBox.margin>
+                    <Button text="Cancelar" styleClass="boton-secundario" onAction="#cancelar"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Confirmar compra" styleClass="boton-primario" onAction="#confirmarCompra"/>
+                </HBox>
+            </VBox>
+        </HBox>
+    </VBox>
+</VBox>
