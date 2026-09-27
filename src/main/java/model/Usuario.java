@@ -1,5 +1,7 @@
 package model;
 
+import catalogo.RolUsuario;
+
 public abstract class Usuario {
 
     protected String nombre;

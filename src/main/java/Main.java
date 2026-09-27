@@ -4,7 +4,7 @@ import model.Compra;
 import model.Evento;
 import model.GestorUsuarios;
 import model.HistorialCompras;
-import model.RolUsuario;
+import catalogo.RolUsuario;
 import model.SistemaGestionBoletos;
 import model.Usuario;
 import persistencia.CompraPersistencia;

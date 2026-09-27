@@ -1,4 +1,4 @@
-package model;
+package catalogo;
 
 public enum RolUsuario {
     ADMINISTRADOR,

@@ -1,5 +1,7 @@
 package model;
 
+import catalogo.RolUsuario;
+
 public class Administrador extends Usuario {
 
     public Administrador(String nombre, String correo, String clave) {
