@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controladores.HistorialController"
+      prefWidth="800" prefHeight="568">
+
+    <!-- Encabezado de la aplicacion -->
+    <HBox styleClass="encabezado">
+        <SVGPath content="M2,6 H22 V10 A2,2 0 0,0 22,14 V18 H2 V14 A2,2 0 0,0 2,10 Z"
+                 fill="WHITE"/>
+        <Label text="Gestión de Boletos" styleClass="encabezado-titulo"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="Bienvenido"/>
+    </HBox>
+
+    <!-- Contenido -->
+    <VBox spacing="16" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="20" right="24" bottom="20" left="24"/>
+        </padding>
+
+        <Label text="Historial de compras" styleClass="titulo"/>
+
+        <HBox spacing="12" alignment="BOTTOM_LEFT">
+            <VBox spacing="4">
+                <Label text="Desde" styleClass="etiqueta-campo"/>
+                <DatePicker fx:id="dpDesde" promptText="dd/mm/aaaa" prefWidth="180"/>
+            </VBox>
+            <VBox spacing="4">
+                <Label text="Hasta" styleClass="etiqueta-campo"/>
+                <DatePicker fx:id="dpHasta" promptText="dd/mm/aaaa" prefWidth="180"/>
+            </VBox>
+            <Button text="Filtrar" styleClass="boton-primario" onAction="#filtrar"/>
+        </HBox>
+
+        <TableView fx:id="tablaCompras" VBox.vgrow="ALWAYS">
+            <placeholder>
+                <Label text="No hay compras para mostrar" styleClass="subtitulo"/>
+            </placeholder>
+            <columns>
+                <TableColumn fx:id="colFecha" text="Fecha" prefWidth="130"/>
+                <TableColumn fx:id="colEvento" text="Evento" prefWidth="350"/>
+                <TableColumn fx:id="colCantidad" text="Cantidad" prefWidth="110"/>
+                <TableColumn fx:id="colTotal" text="Total" prefWidth="145" styleClass="precio"/>
+            </columns>
+        </TableView>
+
+        <HBox>
+            <Button text="Volver" styleClass="boton-secundario" onAction="#volver"/>
+        </HBox>
+    </VBox>
+</VBox>
