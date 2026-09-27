@@ -1,8 +1,11 @@
 package controladores;
 
+import catalogo.RolUsuario;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import model.GestorUsuarios;
+import model.Usuario;
 import util.Alertas;
 import util.Navegacion;
 
@@ -16,12 +19,33 @@ public class LoginController {
 
     @FXML
     private void iniciarSesion() {
-        if (txtCorreo.getText().isBlank() || txtClave.getText().isBlank()) {
+        String correo = txtCorreo.getText().trim();
+        String clave = txtClave.getText();
+        if (correo.isBlank() || clave.isBlank()) {
             Alertas.mostrarAdvertencia("Iniciar sesión", "Ingresa tu correo y tu contraseña.");
             return;
         }
-        // Semana 8: validar con GestorUsuarios y abrir Eventos o PanelAdmin según el rol
-        Alertas.mostrarInformacion("Iniciar sesión", "La validación de credenciales se conectará en la semana 8.");
+
+        Usuario usuario;
+        try {
+            usuario = new GestorUsuarios().iniciarSesion(correo, clave);
+        } catch (RuntimeException e) {
+            Alertas.mostrarError("Iniciar sesión",
+                    "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución.");
+            return;
+        }
+
+        if (usuario == null) {
+            Alertas.mostrarError("Iniciar sesión",
+                    "Correo o contraseña incorrectos, o la cuenta está inactiva.");
+            return;
+        }
+
+        if (usuario.getRol() == RolUsuario.ADMINISTRADOR) {
+            Navegacion.cambiarPantalla("PanelAdmin.fxml", "Panel de Administración");
+        } else {
+            Navegacion.cambiarPantalla("Eventos.fxml", "Eventos Disponibles");
+        }
     }
 
     @FXML
