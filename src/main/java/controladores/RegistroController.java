@@ -3,6 +3,7 @@ package controladores;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import model.GestorUsuarios;
 import util.Alertas;
 import util.Navegacion;
 
@@ -19,17 +20,34 @@ public class RegistroController {
 
     @FXML
     private void crearCuenta() {
-        if (txtNombre.getText().isBlank() || txtCorreo.getText().isBlank()
-                || txtClave.getText().isBlank()) {
+        String nombre = txtNombre.getText().trim();
+        String correo = txtCorreo.getText().trim();
+        String clave = txtClave.getText();
+        if (nombre.isBlank() || correo.isBlank() || clave.isBlank()) {
             Alertas.mostrarAdvertencia("Crear cuenta", "Completa todos los campos.");
             return;
         }
-        if (!txtCorreo.getText().contains("@")) {
+        if (!correo.contains("@")) {
             Alertas.mostrarAdvertencia("Crear cuenta", "Ingresa un correo electrónico válido.");
             return;
         }
-        // Semana 8: registrar con GestorUsuarios y volver al Login
-        Alertas.mostrarInformacion("Crear cuenta", "El registro se conectará en la semana 8.");
+
+        boolean registrado;
+        try {
+            registrado = new GestorUsuarios().registrar(nombre, correo, clave);
+        } catch (RuntimeException e) {
+            Alertas.mostrarError("Crear cuenta",
+                    "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución.");
+            return;
+        }
+
+        if (!registrado) {
+            Alertas.mostrarError("Crear cuenta", "Ya existe una cuenta con ese correo.");
+            return;
+        }
+
+        Alertas.mostrarInformacion("Crear cuenta", "Tu cuenta se creó correctamente. Ya puedes iniciar sesión.");
+        volver();
     }
 
     @FXML
