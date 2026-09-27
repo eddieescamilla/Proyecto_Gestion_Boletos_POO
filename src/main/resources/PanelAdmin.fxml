@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controladores.PanelAdminController"
+      prefWidth="800" prefHeight="568">
+
+    <!-- Encabezado de la aplicacion -->
+    <HBox styleClass="encabezado">
+        <SVGPath content="M2,6 H22 V10 A2,2 0 0,0 22,14 V18 H2 V14 A2,2 0 0,0 2,10 Z"
+                 fill="WHITE"/>
+        <Label text="Gestión de Boletos" styleClass="encabezado-titulo"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label text="Administrador General"/>
+    </HBox>
+
+    <!-- Contenido -->
+    <VBox spacing="10" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="14" right="24" bottom="14" left="24"/>
+        </padding>
+
+        <Label text="Panel de administración" styleClass="titulo"/>
+
+        <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+            <tabs>
+
+                <!-- Pestana Eventos (HU-07) -->
+                <Tab text="Eventos">
+                    <HBox styleClass="tarjeta" spacing="16" style="-fx-padding: 14;">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Listado de eventos" styleClass="etiqueta-campo"/>
+                            <TableView fx:id="tablaEventos" VBox.vgrow="ALWAYS" style="-fx-font-size: 12px;">
+                                <placeholder>
+                                    <Label text="No hay eventos para mostrar" styleClass="subtitulo"/>
+                                </placeholder>
+                                <columns>
+                                    <TableColumn fx:id="colNombre" text="Nombre" prefWidth="115"/>
+                                    <TableColumn fx:id="colCategoria" text="Categoría" prefWidth="85"/>
+                                    <TableColumn fx:id="colFecha" text="Fecha" prefWidth="88"/>
+                                    <TableColumn fx:id="colStock" text="Stock" prefWidth="50"/>
+                                    <TableColumn fx:id="colPrecio" text="Precio" prefWidth="60" styleClass="precio"/>
+                                </columns>
+                            </TableView>
+                        </VBox>
+
+                        <VBox spacing="4" prefWidth="290" minWidth="290">
+                            <Label text="Formulario de evento" styleClass="etiqueta-campo"/>
+
+                            <Label text="Nombre del evento"/>
+                            <TextField fx:id="txtNombre" promptText="Ej. Festival de Jazz"/>
+
+                            <HBox spacing="8">
+                                <VBox spacing="4" prefWidth="141">
+                                    <Label text="Categoría"/>
+                                    <ComboBox fx:id="cmbCategoria" promptText="Selecciona"
+                                              maxWidth="Infinity"/>
+                                </VBox>
+                                <VBox spacing="4" prefWidth="141">
+                                    <Label text="Fecha"/>
+                                    <DatePicker fx:id="dpFecha" promptText="dd/mm/aaaa"
+                                                maxWidth="Infinity"/>
+                                </VBox>
+                            </HBox>
+
+                            <Label text="Lugar"/>
+                            <TextField fx:id="txtLugar" promptText="Ej. Teatro Nacional"/>
+
+                            <HBox spacing="8">
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Inventario"/>
+                                    <TextField fx:id="txtInventario" promptText="Ej. 100"/>
+                                </VBox>
+                                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                    <Label text="Precio"/>
+                                    <TextField fx:id="txtPrecio" promptText="Ej. 25.00"/>
+                                </VBox>
+                            </HBox>
+
+                            <HBox spacing="6">
+                                <VBox.margin>
+                                    <Insets top="6"/>
+                                </VBox.margin>
+                                <Button text="Agregar" style="-fx-padding: 8 6;" styleClass="boton-primario"
+                                        maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#agregarEvento"/>
+                                <Button text="Editar" style="-fx-padding: 8 6;" styleClass="boton-secundario"
+                                        maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#editarEvento"/>
+                                <Button text="Eliminar" style="-fx-padding: 8 6;" styleClass="boton-peligro"
+                                        maxWidth="Infinity" HBox.hgrow="ALWAYS" onAction="#eliminarEvento"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </Tab>
+
+                <!-- Pestana Usuarios (HU-08) -->
+                <Tab text="Usuarios">
+                    <VBox styleClass="tarjeta" spacing="10" style="-fx-padding: 14;">
+                        <Label text="Listado de usuarios" styleClass="etiqueta-campo"/>
+                        <TableView fx:id="tablaUsuarios" VBox.vgrow="ALWAYS">
+                            <placeholder>
+                                <Label text="No hay usuarios para mostrar" styleClass="subtitulo"/>
+                            </placeholder>
+                            <columns>
+                                <TableColumn fx:id="colNombreUsuario" text="Nombre" prefWidth="190"/>
+                                <TableColumn fx:id="colCorreoUsuario" text="Correo" prefWidth="250"/>
+                                <TableColumn fx:id="colRolUsuario" text="Rol" prefWidth="130"/>
+                                <TableColumn fx:id="colEstadoUsuario" text="Estado" prefWidth="140"/>
+                            </columns>
+                        </TableView>
+                        <HBox spacing="8" alignment="CENTER_RIGHT">
+                            <Button text="Activar" styleClass="boton-primario" onAction="#activarUsuario"/>
+                            <Button text="Desactivar" styleClass="boton-peligro" onAction="#desactivarUsuario"/>
+                        </HBox>
+                    </VBox>
+                </Tab>
+
+                <!-- Pestana Reportes (HU-09) -->
+                <Tab text="Reportes">
+                    <VBox styleClass="tarjeta" spacing="12" style="-fx-padding: 14;">
+                        <Label text="Reporte de ventas por categoría" styleClass="etiqueta-campo"/>
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Label text="Categoría"/>
+                            <ComboBox fx:id="cmbCategoriaReporte" promptText="Selecciona" prefWidth="200"/>
+                            <Button text="Generar reporte" styleClass="boton-primario"
+                                    onAction="#generarReporte"/>
+                        </HBox>
+                        <TextArea fx:id="txtReporte" editable="false" wrapText="true" prefRowCount="5"
+                                  promptText="Selecciona una categoría y presiona Generar reporte"/>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+
+        <HBox>
+            <Button text="Cerrar sesión" styleClass="boton-peligro" onAction="#cerrarSesion"/>
+        </HBox>
+    </VBox>
+</VBox>
