@@ -104,6 +104,25 @@ public class UsuarioPersistencia implements DAO<Usuario> {
     }
   }
 
+  /**
+   * Actualiza el estado (activo o inactivo) de un usuario.
+   *
+   * @param correo correo del usuario
+   * @param activo nuevo estado del usuario
+   * @return {@code true} si se actualizó el estado
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
+  public boolean actualizarEstado(String correo, boolean activo) {
+    String sql = "UPDATE usuarios SET activo = ? WHERE correo = ?";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setInt(1, activo ? 1 : 0);
+      statement.setString(2, correo);
+      return statement.executeUpdate() > 0;
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo actualizar el estado del usuario.", e);
+    }
+  }
+
   private Usuario mapearUsuario(ResultSet resultado) throws SQLException {
     String nombre = resultado.getString("nombre");
     String correo = resultado.getString("correo");
