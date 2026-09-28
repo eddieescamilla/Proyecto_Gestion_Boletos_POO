@@ -7,6 +7,7 @@ import model.GestorUsuarios;
 import util.Alertas;
 import util.Navegacion;
 
+/** Controlador de la pantalla de registro de usuarios ({@code Registro.fxml}). */
 public class RegistroController {
 
   @FXML

@@ -6,10 +6,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/** Administra la conexión única a PostgreSQL y prepara las tablas y los datos iniciales. */
 public class ConexionBD {
 
   private static Connection conexion;
 
+  /**
+   * Devuelve la conexión a la base de datos, creándola la primera vez.
+   *
+   * <p>Al crearla, también crea las tablas y carga los datos iniciales si no existen.
+   *
+   * @return la conexión a la base de datos
+   * @throws RuntimeException si no se puede conectar a la base de datos
+   */
   public static Connection obtenerConexion() {
     if (conexion == null) {
       try {

@@ -12,6 +12,12 @@ import model.SistemaGestionBoletos;
 import util.Alertas;
 import util.Navegacion;
 
+/**
+ * Controlador de la pantalla de eventos disponibles ({@code Eventos.fxml}).
+ *
+ * <p>Carga los eventos desde la base de datos y permite ir a la compra, al historial o
+ * cerrar la sesión.
+ */
 public class EventosController {
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");

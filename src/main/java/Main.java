@@ -11,8 +11,14 @@ import model.Usuario;
 import persistencia.CompraPersistencia;
 import ui.ConsolaUI;
 
+/** Punto de entrada de la versión por consola del sistema de gestión de boletos. */
 public class Main {
 
+  /**
+   * Inicia el sistema por consola: autentica al usuario y muestra el menú según su rol.
+   *
+   * @param args argumentos de la línea de comandos (no se usan)
+   */
   public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
     ConsolaUI consola = new ConsolaUI(scanner);
