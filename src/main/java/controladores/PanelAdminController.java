@@ -20,6 +20,12 @@ import model.Usuario;
 import util.Alertas;
 import util.Navegacion;
 
+/**
+ * Controlador del panel de administración ({@code PanelAdmin.fxml}).
+ *
+ * <p>Agrupa la gestión de eventos, la gestión de usuarios y el reporte de ventas por
+ * categoría en tres pestañas.
+ */
 public class PanelAdminController {
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -247,7 +253,8 @@ public class PanelAdminController {
       Alertas.mostrarAdvertencia("Generar reporte", "Selecciona una categoría.");
       return;
     }
-    // Semana 8: txtReporte.setText(compraPersistencia.generarReportePorCategoria(categoria.getValorBD()));
+    // Semana 8: mostrar en txtReporte el resultado de
+    // compraPersistencia.generarReportePorCategoria(categoria.getValorBD())
     txtReporte.setText("El reporte de " + categoria + " se generará en la semana 8.");
   }
 

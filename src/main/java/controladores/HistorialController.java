@@ -13,6 +13,7 @@ import persistencia.RegistroCompra;
 import util.Alertas;
 import util.Navegacion;
 
+/** Controlador de la pantalla de historial de compras ({@code Historial.fxml}). */
 public class HistorialController {
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");

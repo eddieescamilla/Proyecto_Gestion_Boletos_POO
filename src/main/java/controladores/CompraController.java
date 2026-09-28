@@ -11,6 +11,12 @@ import model.Evento;
 import util.Alertas;
 import util.Navegacion;
 
+/**
+ * Controlador de la pantalla de compra de boletos ({@code Compra.fxml}).
+ *
+ * <p>Muestra el detalle del evento seleccionado, calcula el total según la cantidad de
+ * boletos y valida los datos de la compra.
+ */
 public class CompraController {
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -53,6 +59,11 @@ public class CompraController {
     txtCantidad.textProperty().addListener((observable, anterior, nuevo) -> actualizarTotal());
   }
 
+  /**
+   * Recibe el evento seleccionado en la pantalla de Eventos y muestra su detalle.
+   *
+   * @param evento evento que el usuario quiere comprar
+   */
   public void setEvento(Evento evento) {
     this.evento = evento;
     lblEvento.setText(evento.getNombreEvento());

@@ -9,6 +9,12 @@ import model.Usuario;
 import util.Alertas;
 import util.Navegacion;
 
+/**
+ * Controlador de la pantalla de inicio de sesión ({@code Login.fxml}).
+ *
+ * <p>Valida las credenciales con {@link GestorUsuarios} y abre la pantalla que corresponde al
+ * rol del usuario.
+ */
 public class LoginController {
 
   @FXML
