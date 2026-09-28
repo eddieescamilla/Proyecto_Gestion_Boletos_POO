@@ -1,6 +1,6 @@
 package catalogo;
 
 public enum RolUsuario {
-    ADMINISTRADOR,
-    CLIENTE
+  ADMINISTRADOR,
+  CLIENTE
 }
