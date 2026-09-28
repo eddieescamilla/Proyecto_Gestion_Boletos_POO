@@ -10,14 +10,22 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Compra;
 
+/** Persistencia de las compras en PostgreSQL mediante el patrón DAO. */
 public class CompraPersistencia implements DAO<RegistroCompra> {
 
   private Connection conexion;
 
+  /** Crea la persistencia usando la conexión compartida a la base de datos. */
   public CompraPersistencia() {
     this.conexion = ConexionBD.obtenerConexion();
   }
 
+  /**
+   * Guarda una compra confirmada con la fecha actual.
+   *
+   * @param compra compra a registrar
+   * @return {@code true} si se guardó correctamente
+   */
   public boolean guardarCompra(Compra compra) {
     RegistroCompra registro = new RegistroCompra(
         compra.getComprador().getCorreo(),
@@ -30,6 +38,13 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
     return guardar(registro);
   }
 
+  /**
+   * Guarda un registro de compra.
+   *
+   * @param registro registro de compra a guardar
+   * @return {@code true} si se guardó correctamente
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   @Override
   public boolean guardar(RegistroCompra registro) {
     String sql = "INSERT INTO compras (correo_comprador, nombre_evento, categoria_evento, " +
@@ -48,6 +63,13 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
     }
   }
 
+  /**
+   * Busca una compra por su identificador numérico.
+   *
+   * @param id identificador de la compra
+   * @return el registro encontrado, o {@code null} si no existe
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   @Override
   public RegistroCompra buscarPorId(String id) {
     String sql = "SELECT * FROM compras WHERE id = ?";
@@ -61,6 +83,12 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
     }
   }
 
+  /**
+   * Devuelve todas las compras registradas.
+   *
+   * @return lista con todos los registros de compra
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   @Override
   public List<RegistroCompra> listarTodos() {
     List<RegistroCompra> registros = new ArrayList<>();
@@ -76,6 +104,13 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
     return registros;
   }
 
+  /**
+   * Elimina una compra por su identificador numérico.
+   *
+   * @param id identificador de la compra
+   * @return {@code true} si se eliminó la compra
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   @Override
   public boolean eliminar(String id) {
     String sql = "DELETE FROM compras WHERE id = ?";
@@ -87,6 +122,13 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
     }
   }
 
+  /**
+   * Genera el reporte de boletos vendidos e ingreso total de una categoría.
+   *
+   * @param categoria categoría tal como está guardada en la base de datos
+   * @return el reporte en formato de texto, o un mensaje si no hay datos
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   public String generarReportePorCategoria(String categoria) {
     if (categoria == null || categoria.isBlank()) {
       return "Debe seleccionar una categoria antes de generar el reporte.";

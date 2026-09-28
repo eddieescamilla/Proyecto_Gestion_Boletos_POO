@@ -12,14 +12,23 @@ import model.Administrador;
 import model.Comprador;
 import model.Usuario;
 
+/** Persistencia de los usuarios en PostgreSQL mediante el patrón DAO. */
 public class UsuarioPersistencia implements DAO<Usuario> {
 
   private Connection conexion;
 
+  /** Crea la persistencia usando la conexión compartida a la base de datos. */
   public UsuarioPersistencia() {
     this.conexion = ConexionBD.obtenerConexion();
   }
 
+  /**
+   * Guarda un usuario nuevo.
+   *
+   * @param usuario usuario a guardar
+   * @return {@code true} si se guardó correctamente
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   @Override
   public boolean guardar(Usuario usuario) {
     String sql = "INSERT INTO usuarios (correo, nombre, clave, rol, activo) VALUES (?, ?, ?, ?, ?)";
@@ -36,6 +45,13 @@ public class UsuarioPersistencia implements DAO<Usuario> {
     }
   }
 
+  /**
+   * Busca un usuario por su correo.
+   *
+   * @param correo correo del usuario
+   * @return el usuario encontrado, o {@code null} si no existe
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   @Override
   public Usuario buscarPorId(String correo) {
     String sql = "SELECT * FROM usuarios WHERE correo = ?";
@@ -49,6 +65,12 @@ public class UsuarioPersistencia implements DAO<Usuario> {
     }
   }
 
+  /**
+   * Devuelve todos los usuarios registrados.
+   *
+   * @return lista con todos los usuarios
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   @Override
   public List<Usuario> listarTodos() {
     List<Usuario> usuarios = new ArrayList<>();
@@ -64,6 +86,13 @@ public class UsuarioPersistencia implements DAO<Usuario> {
     return usuarios;
   }
 
+  /**
+   * Elimina un usuario por su correo.
+   *
+   * @param correo correo del usuario
+   * @return {@code true} si se eliminó el usuario
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   @Override
   public boolean eliminar(String correo) {
     String sql = "DELETE FROM usuarios WHERE correo = ?";

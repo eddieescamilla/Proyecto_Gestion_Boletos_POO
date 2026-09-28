@@ -6,14 +6,26 @@ import java.util.List;
 import persistencia.CompraPersistencia;
 import persistencia.RegistroCompra;
 
+/** Consulta el historial de compras de un cliente. */
 public class HistorialCompras {
 
   private CompraPersistencia compraPersistencia;
 
+  /**
+   * Crea el historial con acceso a la persistencia de compras.
+   *
+   * @param compraPersistencia persistencia de las compras
+   */
   public HistorialCompras(CompraPersistencia compraPersistencia) {
     this.compraPersistencia = compraPersistencia;
   }
 
+  /**
+   * Devuelve todas las compras de un cliente en formato de texto.
+   *
+   * @param correoCliente correo del cliente
+   * @return el historial de compras, o un mensaje si no tiene compras
+   */
   public String mostrarHistorial(String correoCliente) {
     List<RegistroCompra> compras = buscarPorCliente(correoCliente);
     if (compras.isEmpty()) {
@@ -29,6 +41,14 @@ public class HistorialCompras {
     return resultado.toString();
   }
 
+  /**
+   * Devuelve las compras de un cliente dentro de un rango de fechas, en formato de texto.
+   *
+   * @param correoCliente correo del cliente
+   * @param desde fecha inicial del rango, incluida
+   * @param hasta fecha final del rango, incluida
+   * @return el historial filtrado, o un mensaje si no hay compras en el rango
+   */
   public String mostrarHistorialFiltrado(String correoCliente, LocalDate desde, LocalDate hasta) {
     List<RegistroCompra> comprasEnRango = new ArrayList<>();
     for (RegistroCompra registro : buscarPorCliente(correoCliente)) {
