@@ -88,6 +88,36 @@ fecha) y HU-09 (reporte de ventas por categoría de evento).
 | Historial de compras | `Historial.fxml` + `HistorialController` | `historial.jpg` |
 | Panel de administración (Eventos, Usuarios y Reportes) | `PanelAdmin.fxml` + `PanelAdminController` | `panel-admin.jpg`, `panel-admin-usuarios.jpg`, `panel-admin-reportes.jpg` |
 
+## Séptimo y octavo entregable
+
+**Consolidación del Sprint 2 (Semanas 7 y 8): historias HU-05 a HU-09 integradas y control de versiones con Gitflow.**
+
+- **Historias completadas** (planificación en [`docs/decisiones-sprint7-8.md`](./docs/decisiones-sprint7-8.md)):
+  - **HU-05** (Xiomara): selección de método de pago desde la pantalla de compra.
+  - **HU-06** (Xiomara): historial de compras del cliente con filtro por fechas.
+  - **HU-07** (Daniel): gestión de eventos (crear, editar y eliminar) desde el
+    panel de administración, con validaciones y confirmación.
+  - **HU-08** (Daniel): gestión de usuarios (listado, activar y desactivar)
+    desde el panel de administración.
+  - **HU-09** (Daniel): reporte de ventas por categoría de evento, generado
+    desde `CompraPersistencia.generarReportePorCategoria(...)` y accesible
+    desde la pestaña de reportes del panel de administración.
+- **Gitflow:** el trabajo se estructuró en tres tipos de ramas:
+  - `main`: rama estable, solo recibe merges desde `develop` al cierre de cada
+    sprint.
+  - `develop`: rama de integración; todas las `feature/*` se fusionan aquí.
+  - `feature/*`: una rama por historia o cambio puntual, con Pull Request
+    dirigido a `develop` para revisión antes del merge.
+- **Convenciones de commits:** todos los mensajes siguen
+  [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`,
+  `fix:`, `docs:`, `refactor:`, `chore:`), un cambio por commit y un archivo
+  o cambio lógico por Pull Request cuando aplica.
+- **Pull Requests y revisión:** cada `feature/*` se abrió como PR contra
+  `develop`, con Eddie como revisor asignado según los roles de gestión
+  ([`docs/decisiones-sprint7-8.md`](./docs/decisiones-sprint7-8.md)). El
+  historial de PRs queda visible en la pestaña
+  [Pull Requests](../../pulls?q=is%3Apr) del repositorio.
+
 ## Diagramas UML
 
 Todos los diagramas se encuentran en la carpeta [`diagramasUML/`](./diagramasUML):
