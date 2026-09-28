@@ -3,9 +3,12 @@ package controladores;
 import catalogo.Categoria;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -106,16 +109,44 @@ public class PanelAdminController {
     tablaEventos.getSelectionModel().selectedItemProperty()
         .addListener((observable, anterior, seleccionado) -> mostrarEnFormulario(seleccionado));
 
-    try {
-      eventoPersistencia = new EventoPersistencia();
-      usuarioPersistencia = new UsuarioPersistencia();
-      compraPersistencia = new CompraPersistencia();
-      tablaEventos.getItems().setAll(eventoPersistencia.listarTodos());
-      tablaUsuarios.getItems().setAll(usuarioPersistencia.listarTodos());
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Panel de administración",
-          "No se pudieron cargar los datos. Verifica que Docker esté en ejecución.");
-    }
+    eventoPersistencia = new EventoPersistencia();
+    usuarioPersistencia = new UsuarioPersistencia();
+    compraPersistencia = new CompraPersistencia();
+    cargarEventos();
+    cargarUsuarios();
+  }
+
+  /** Corre una tarea en un hilo demonio para no bloquear la interfaz. */
+  private void ejecutarEnSegundoPlano(Task<?> tarea) {
+    Thread hilo = new Thread(tarea);
+    hilo.setDaemon(true);
+    hilo.start();
+  }
+
+  private void cargarEventos() {
+    Task<List<Evento>> tarea = new Task<>() {
+      @Override
+      protected List<Evento> call() {
+        return eventoPersistencia.listarTodos();
+      }
+    };
+    tarea.setOnSucceeded(evento -> tablaEventos.getItems().setAll(tarea.getValue()));
+    tarea.setOnFailed(evento -> Alertas.mostrarError("Panel de administración",
+        "No se pudieron cargar los eventos. Verifica que Docker esté en ejecución."));
+    ejecutarEnSegundoPlano(tarea);
+  }
+
+  private void cargarUsuarios() {
+    Task<List<Usuario>> tarea = new Task<>() {
+      @Override
+      protected List<Usuario> call() {
+        return usuarioPersistencia.listarTodos();
+      }
+    };
+    tarea.setOnSucceeded(evento -> tablaUsuarios.getItems().setAll(tarea.getValue()));
+    tarea.setOnFailed(evento -> Alertas.mostrarError("Panel de administración",
+        "No se pudieron cargar los usuarios. Verifica que Docker esté en ejecución."));
+    ejecutarEnSegundoPlano(tarea);
   }
 
   private void configurarTablaEventos() {
@@ -213,31 +244,47 @@ public class PanelAdminController {
     if (!formularioValido() || eventoPersistencia == null) {
       return;
     }
-    String nombre = txtNombre.getText().trim();
-    if (eventoPersistencia.buscarPorId(nombre) != null) {
-      Alertas.mostrarAdvertencia("Agregar evento",
-          "Ya existe un evento con el nombre \"" + nombre + "\".");
-      return;
-    }
+    final String nombre = txtNombre.getText().trim();
+    final Evento nuevo;
     try {
-      Evento nuevo = new Evento(
+      nuevo = new Evento(
           nombre,
           cmbCategoria.getValue().getValorBD(),
           dpFecha.getValue(),
           txtLugar.getText().trim(),
           Integer.parseInt(txtInventario.getText().trim()),
           Double.parseDouble(txtPrecio.getText().trim()));
-      eventoPersistencia.guardar(nuevo);
-      tablaEventos.getItems().add(nuevo);
-      Alertas.mostrarInformacion("Agregar evento", "Evento agregado correctamente.");
     } catch (RuntimeException e) {
-      Alertas.mostrarError("Agregar evento", "No se pudo guardar el evento.");
+      Alertas.mostrarError("Agregar evento", "Datos del formulario inválidos.");
+      return;
     }
+    Task<Boolean> tarea = new Task<>() {
+      @Override
+      protected Boolean call() {
+        if (eventoPersistencia.buscarPorId(nombre) != null) {
+          return false;
+        }
+        eventoPersistencia.guardar(nuevo);
+        return true;
+      }
+    };
+    tarea.setOnSucceeded(evento -> {
+      if (Boolean.TRUE.equals(tarea.getValue())) {
+        tablaEventos.getItems().add(nuevo);
+        Alertas.mostrarInformacion("Agregar evento", "Evento agregado correctamente.");
+      } else {
+        Alertas.mostrarAdvertencia("Agregar evento",
+            "Ya existe un evento con el nombre \"" + nombre + "\".");
+      }
+    });
+    tarea.setOnFailed(evento ->
+        Alertas.mostrarError("Agregar evento", "No se pudo guardar el evento."));
+    ejecutarEnSegundoPlano(tarea);
   }
 
   @FXML
   private void editarEvento() {
-    Evento seleccionado = tablaEventos.getSelectionModel().getSelectedItem();
+    final Evento seleccionado = tablaEventos.getSelectionModel().getSelectedItem();
     if (seleccionado == null) {
       Alertas.mostrarAdvertencia("Editar evento", "Selecciona un evento de la tabla.");
       return;
@@ -245,26 +292,39 @@ public class PanelAdminController {
     if (!formularioValido() || eventoPersistencia == null) {
       return;
     }
+    final Evento actualizado;
     try {
-      Evento actualizado = new Evento(
+      actualizado = new Evento(
           seleccionado.getNombreEvento(),
           cmbCategoria.getValue().getValorBD(),
           dpFecha.getValue(),
           txtLugar.getText().trim(),
           Integer.parseInt(txtInventario.getText().trim()),
           Double.parseDouble(txtPrecio.getText().trim()));
-      eventoPersistencia.actualizarEvento(actualizado);
+    } catch (RuntimeException e) {
+      Alertas.mostrarError("Editar evento", "Datos del formulario inválidos.");
+      return;
+    }
+    Task<Void> tarea = new Task<>() {
+      @Override
+      protected Void call() {
+        eventoPersistencia.actualizarEvento(actualizado);
+        return null;
+      }
+    };
+    tarea.setOnSucceeded(evento -> {
       int indice = tablaEventos.getItems().indexOf(seleccionado);
       tablaEventos.getItems().set(indice, actualizado);
       Alertas.mostrarInformacion("Editar evento", "Cambios guardados correctamente.");
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Editar evento", "No se pudo actualizar el evento.");
-    }
+    });
+    tarea.setOnFailed(evento ->
+        Alertas.mostrarError("Editar evento", "No se pudo actualizar el evento."));
+    ejecutarEnSegundoPlano(tarea);
   }
 
   @FXML
   private void eliminarEvento() {
-    Evento seleccionado = tablaEventos.getSelectionModel().getSelectedItem();
+    final Evento seleccionado = tablaEventos.getSelectionModel().getSelectedItem();
     if (seleccionado == null) {
       Alertas.mostrarAdvertencia("Eliminar evento", "Selecciona un evento de la tabla.");
       return;
@@ -276,13 +336,20 @@ public class PanelAdminController {
         "¿Deseas eliminar el evento \"" + seleccionado.getNombreEvento() + "\"?")) {
       return;
     }
-    try {
-      eventoPersistencia.eliminar(seleccionado.getNombreEvento());
+    Task<Void> tarea = new Task<>() {
+      @Override
+      protected Void call() {
+        eventoPersistencia.eliminar(seleccionado.getNombreEvento());
+        return null;
+      }
+    };
+    tarea.setOnSucceeded(evento -> {
       tablaEventos.getItems().remove(seleccionado);
       Alertas.mostrarInformacion("Eliminar evento", "Evento eliminado correctamente.");
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Eliminar evento", "No se pudo eliminar el evento.");
-    }
+    });
+    tarea.setOnFailed(evento ->
+        Alertas.mostrarError("Eliminar evento", "No se pudo eliminar el evento."));
+    ejecutarEnSegundoPlano(tarea);
   }
 
   @FXML
@@ -296,7 +363,7 @@ public class PanelAdminController {
   }
 
   private void cambiarEstadoUsuario(String accion, boolean nuevoEstado) {
-    Usuario seleccionado = tablaUsuarios.getSelectionModel().getSelectedItem();
+    final Usuario seleccionado = tablaUsuarios.getSelectionModel().getSelectedItem();
     if (seleccionado == null) {
       Alertas.mostrarAdvertencia(accion, "Selecciona un usuario de la tabla.");
       return;
@@ -309,19 +376,26 @@ public class PanelAdminController {
           "El usuario ya está " + (nuevoEstado ? "activo." : "inactivo."));
       return;
     }
-    try {
-      usuarioPersistencia.actualizarEstado(seleccionado.getCorreo(), nuevoEstado);
+    Task<Void> tarea = new Task<>() {
+      @Override
+      protected Void call() {
+        usuarioPersistencia.actualizarEstado(seleccionado.getCorreo(), nuevoEstado);
+        return null;
+      }
+    };
+    tarea.setOnSucceeded(evento -> {
       seleccionado.setActivo(nuevoEstado);
       tablaUsuarios.refresh();
       Alertas.mostrarInformacion(accion, "Estado del usuario actualizado.");
-    } catch (RuntimeException e) {
-      Alertas.mostrarError(accion, "No se pudo actualizar el estado del usuario.");
-    }
+    });
+    tarea.setOnFailed(evento ->
+        Alertas.mostrarError(accion, "No se pudo actualizar el estado del usuario."));
+    ejecutarEnSegundoPlano(tarea);
   }
 
   @FXML
   private void generarReporte() {
-    Categoria categoria = cmbCategoriaReporte.getValue();
+    final Categoria categoria = cmbCategoriaReporte.getValue();
     if (categoria == null) {
       Alertas.mostrarAdvertencia("Generar reporte", "Selecciona una categoría.");
       return;
@@ -329,11 +403,17 @@ public class PanelAdminController {
     if (compraPersistencia == null) {
       return;
     }
-    try {
-      txtReporte.setText(compraPersistencia.generarReportePorCategoria(categoria.getValorBD()));
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Generar reporte", "No se pudo generar el reporte.");
-    }
+    Task<String> tarea = new Task<>() {
+      @Override
+      protected String call() {
+        Platform.runLater(() -> txtReporte.setText("Generando reporte..."));
+        return compraPersistencia.generarReportePorCategoria(categoria.getValorBD());
+      }
+    };
+    tarea.setOnSucceeded(evento -> txtReporte.setText(tarea.getValue()));
+    tarea.setOnFailed(evento ->
+        Alertas.mostrarError("Generar reporte", "No se pudo generar el reporte."));
+    ejecutarEnSegundoPlano(tarea);
   }
 
   @FXML
