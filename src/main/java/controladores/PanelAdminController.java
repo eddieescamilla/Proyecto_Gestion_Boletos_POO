@@ -17,6 +17,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import model.Evento;
 import model.Usuario;
+import persistencia.CompraPersistencia;
+import persistencia.EventoPersistencia;
+import persistencia.UsuarioPersistencia;
 import util.Alertas;
 import util.Navegacion;
 
@@ -29,6 +32,10 @@ import util.Navegacion;
 public class PanelAdminController {
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+  private EventoPersistencia eventoPersistencia;
+  private UsuarioPersistencia usuarioPersistencia;
+  private CompraPersistencia compraPersistencia;
 
   // ===== Pestana Eventos =====
   @FXML
@@ -98,7 +105,17 @@ public class PanelAdminController {
     cmbCategoriaReporte.getItems().setAll(Categoria.values());
     tablaEventos.getSelectionModel().selectedItemProperty()
         .addListener((observable, anterior, seleccionado) -> mostrarEnFormulario(seleccionado));
-    // Semana 8: cargar eventos y usuarios desde la base de datos
+
+    try {
+      eventoPersistencia = new EventoPersistencia();
+      usuarioPersistencia = new UsuarioPersistencia();
+      compraPersistencia = new CompraPersistencia();
+      tablaEventos.getItems().setAll(eventoPersistencia.listarTodos());
+      tablaUsuarios.getItems().setAll(usuarioPersistencia.listarTodos());
+    } catch (RuntimeException e) {
+      Alertas.mostrarError("Panel de administración",
+          "No se pudieron cargar los datos. Verifica que Docker esté en ejecución.");
+    }
   }
 
   private void configurarTablaEventos() {
@@ -193,24 +210,56 @@ public class PanelAdminController {
 
   @FXML
   private void agregarEvento() {
-    if (!formularioValido()) {
+    if (!formularioValido() || eventoPersistencia == null) {
       return;
     }
-    // Semana 8: guardar el evento con EventoPersistencia
-    Alertas.mostrarInformacion("Agregar evento", "El evento se guardará en la semana 8.");
+    String nombre = txtNombre.getText().trim();
+    if (eventoPersistencia.buscarPorId(nombre) != null) {
+      Alertas.mostrarAdvertencia("Agregar evento",
+          "Ya existe un evento con el nombre \"" + nombre + "\".");
+      return;
+    }
+    try {
+      Evento nuevo = new Evento(
+          nombre,
+          cmbCategoria.getValue().getValorBD(),
+          dpFecha.getValue(),
+          txtLugar.getText().trim(),
+          Integer.parseInt(txtInventario.getText().trim()),
+          Double.parseDouble(txtPrecio.getText().trim()));
+      eventoPersistencia.guardar(nuevo);
+      tablaEventos.getItems().add(nuevo);
+      Alertas.mostrarInformacion("Agregar evento", "Evento agregado correctamente.");
+    } catch (RuntimeException e) {
+      Alertas.mostrarError("Agregar evento", "No se pudo guardar el evento.");
+    }
   }
 
   @FXML
   private void editarEvento() {
-    if (tablaEventos.getSelectionModel().getSelectedItem() == null) {
+    Evento seleccionado = tablaEventos.getSelectionModel().getSelectedItem();
+    if (seleccionado == null) {
       Alertas.mostrarAdvertencia("Editar evento", "Selecciona un evento de la tabla.");
       return;
     }
-    if (!formularioValido()) {
+    if (!formularioValido() || eventoPersistencia == null) {
       return;
     }
-    // Semana 8: actualizar el evento con EventoPersistencia
-    Alertas.mostrarInformacion("Editar evento", "Los cambios se guardarán en la semana 8.");
+    try {
+      Evento actualizado = new Evento(
+          seleccionado.getNombreEvento(),
+          cmbCategoria.getValue().getValorBD(),
+          dpFecha.getValue(),
+          txtLugar.getText().trim(),
+          Integer.parseInt(txtInventario.getText().trim()),
+          Double.parseDouble(txtPrecio.getText().trim()));
+      eventoPersistencia.actualizarEvento(actualizado);
+      int indice = tablaEventos.getItems().indexOf(seleccionado);
+      tablaEventos.getItems().set(indice, actualizado);
+      Alertas.mostrarInformacion("Editar evento", "Cambios guardados correctamente.");
+    } catch (RuntimeException e) {
+      Alertas.mostrarError("Editar evento", "No se pudo actualizar el evento.");
+    }
   }
 
   @FXML
@@ -220,30 +269,54 @@ public class PanelAdminController {
       Alertas.mostrarAdvertencia("Eliminar evento", "Selecciona un evento de la tabla.");
       return;
     }
-    if (Alertas.confirmar("Eliminar evento",
+    if (eventoPersistencia == null) {
+      return;
+    }
+    if (!Alertas.confirmar("Eliminar evento",
         "¿Deseas eliminar el evento \"" + seleccionado.getNombreEvento() + "\"?")) {
-      // Semana 8: eliminar el evento con EventoPersistencia
-      Alertas.mostrarInformacion("Eliminar evento", "La eliminación se conectará en la semana 8.");
+      return;
+    }
+    try {
+      eventoPersistencia.eliminar(seleccionado.getNombreEvento());
+      tablaEventos.getItems().remove(seleccionado);
+      Alertas.mostrarInformacion("Eliminar evento", "Evento eliminado correctamente.");
+    } catch (RuntimeException e) {
+      Alertas.mostrarError("Eliminar evento", "No se pudo eliminar el evento.");
     }
   }
 
   @FXML
   private void activarUsuario() {
-    cambiarEstadoUsuario("Activar usuario");
+    cambiarEstadoUsuario("Activar usuario", true);
   }
 
   @FXML
   private void desactivarUsuario() {
-    cambiarEstadoUsuario("Desactivar usuario");
+    cambiarEstadoUsuario("Desactivar usuario", false);
   }
 
-  private void cambiarEstadoUsuario(String accion) {
-    if (tablaUsuarios.getSelectionModel().getSelectedItem() == null) {
+  private void cambiarEstadoUsuario(String accion, boolean nuevoEstado) {
+    Usuario seleccionado = tablaUsuarios.getSelectionModel().getSelectedItem();
+    if (seleccionado == null) {
       Alertas.mostrarAdvertencia(accion, "Selecciona un usuario de la tabla.");
       return;
     }
-    // Semana 8: actualizar el estado del usuario con UsuarioPersistencia
-    Alertas.mostrarInformacion(accion, "El cambio de estado se conectará en la semana 8.");
+    if (usuarioPersistencia == null) {
+      return;
+    }
+    if (seleccionado.isActivo() == nuevoEstado) {
+      Alertas.mostrarAdvertencia(accion,
+          "El usuario ya está " + (nuevoEstado ? "activo." : "inactivo."));
+      return;
+    }
+    try {
+      usuarioPersistencia.actualizarEstado(seleccionado.getCorreo(), nuevoEstado);
+      seleccionado.setActivo(nuevoEstado);
+      tablaUsuarios.refresh();
+      Alertas.mostrarInformacion(accion, "Estado del usuario actualizado.");
+    } catch (RuntimeException e) {
+      Alertas.mostrarError(accion, "No se pudo actualizar el estado del usuario.");
+    }
   }
 
   @FXML
@@ -253,9 +326,14 @@ public class PanelAdminController {
       Alertas.mostrarAdvertencia("Generar reporte", "Selecciona una categoría.");
       return;
     }
-    // Semana 8: mostrar en txtReporte el resultado de
-    // compraPersistencia.generarReportePorCategoria(categoria.getValorBD())
-    txtReporte.setText("El reporte de " + categoria + " se generará en la semana 8.");
+    if (compraPersistencia == null) {
+      return;
+    }
+    try {
+      txtReporte.setText(compraPersistencia.generarReportePorCategoria(categoria.getValorBD()));
+    } catch (RuntimeException e) {
+      Alertas.mostrarError("Generar reporte", "No se pudo generar el reporte.");
+    }
   }
 
   @FXML
