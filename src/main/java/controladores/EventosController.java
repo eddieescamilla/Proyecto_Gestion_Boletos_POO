@@ -8,6 +8,7 @@ import javafx.scene.control.TableView;
 import model.Evento;
 import util.Alertas;
 import util.Navegacion;
+import model.SistemaGestionBoletos;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -51,7 +52,15 @@ public class EventosController {
                 new SimpleIntegerProperty(dato.getValue().getInventarioDisponible()).asObject());
         colPrecio.setCellValueFactory(dato ->
                 new SimpleStringProperty(String.format(Locale.US, "$%.2f", dato.getValue().getPrecioBoleto())));
-        // Semana 8: cargar los eventos desde la base de datos con SistemaGestionBoletos
+        cargarEventos();
+    }
+    private void cargarEventos() {
+        try {
+            tablaEventos.getItems().setAll(new SistemaGestionBoletos().getListaEventos());
+        } catch (RuntimeException e) {
+            Alertas.mostrarError("Eventos disponibles",
+                "No se pudieron cargar los eventos. Verifica que Docker esté en ejecución.");
+        }
     }
 
     @FXML
