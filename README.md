@@ -2,9 +2,11 @@
 
 ## Integrantes
 
-- José Edgardo Rosales Escamilla [00129426]
-- Xiomara Molina Amaya [00220826]
-- Daniel Eduardo García Hernández [00253220]
+| Nombre | Carnet | GitHub |
+|---|---|---|
+| José Edgardo Rosales Escamilla | 00129426 | [@eddieescamilla](https://github.com/eddieescamilla) |
+| Xiomara Molina Amaya | 00220826 | [@Xio7w7](https://github.com/Xio7w7) |
+| Daniel Eduardo García Hernández | 00253220 | [@TheSulak3](https://github.com/TheSulak3) |
 
 ## Descripción
 
