@@ -25,6 +25,8 @@ public class ConexionBD {
         conexion = DriverManager.getConnection(
             ConfigBD.url(), ConfigBD.usuario(), ConfigBD.clave());
         crearTablas(conexion);
+        aplicarRestriccionesReferenciales(conexion);
+        crearIndices(conexion);
         sembrarDatosIniciales(conexion);
       } catch (SQLException e) {
         throw new RuntimeException("No se pudo conectar a la base de datos.", e);
@@ -58,6 +60,37 @@ public class ConexionBD {
           "cantidad_boletos INTEGER NOT NULL, " +
           "total REAL NOT NULL, " +
           "fecha TEXT NOT NULL)");
+    }
+  }
+
+  private static void aplicarRestriccionesReferenciales(Connection conexion) throws SQLException {
+    try (Statement statement = conexion.createStatement()) {
+      statement.execute("ALTER TABLE compras "
+          + "DROP CONSTRAINT IF EXISTS fk_compras_usuarios");
+      statement.execute("ALTER TABLE compras "
+          + "ADD CONSTRAINT fk_compras_usuarios "
+          + "FOREIGN KEY (correo_comprador) REFERENCES usuarios(correo) "
+          + "ON UPDATE CASCADE ON DELETE RESTRICT");
+
+      statement.execute("ALTER TABLE compras "
+          + "DROP CONSTRAINT IF EXISTS fk_compras_eventos");
+      statement.execute("ALTER TABLE compras "
+          + "ADD CONSTRAINT fk_compras_eventos "
+          + "FOREIGN KEY (nombre_evento) REFERENCES eventos(nombre_evento) "
+          + "ON UPDATE CASCADE ON DELETE RESTRICT");
+    }
+  }
+
+  private static void crearIndices(Connection conexion) throws SQLException {
+    try (Statement statement = conexion.createStatement()) {
+      statement.execute(
+          "CREATE INDEX IF NOT EXISTS idx_compras_categoria ON compras(categoria_evento)");
+      statement.execute(
+          "CREATE INDEX IF NOT EXISTS idx_compras_correo ON compras(correo_comprador)");
+      statement.execute(
+          "CREATE INDEX IF NOT EXISTS idx_compras_fecha ON compras(fecha)");
+      statement.execute(
+          "CREATE INDEX IF NOT EXISTS idx_eventos_categoria ON eventos(categoria)");
     }
   }
 
