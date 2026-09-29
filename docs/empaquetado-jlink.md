@@ -13,6 +13,34 @@ esta guía se convierte en la referencia oficial.
 - El proyecto debe estar modularizado (archivo `module-info.java`).
 - Gradle 9 o superior.
 
+## Consideración importante: dependencias no modulares
+
+`jlink` **rechaza automatic modules**: cualquier dependencia que no
+declare su propio `module-info.class` no se puede incluir directamente.
+El proyecto usa varias dependencias en esta situación, en particular:
+
+- `org.postgresql:postgresql` (driver JDBC).
+- `ch.qos.logback:logback-classic` (backend de logging).
+- Algunas subdependencias transitivas.
+
+Antes de correr `jlink` hay que resolver esto por alguna de las
+siguientes vías:
+
+1. **Envolver el driver con `moditect`**: el plugin
+   [`org.moditect.gradleplugin`](https://github.com/moditect/moditect-gradle-plugin)
+   permite generar un `module-info.java` sintético para cada
+   dependencia no modular y publicarla como jar modular al build.
+2. **Usar `jpackage` en lugar de `jlink`**: `jpackage` acepta
+   automatic modules y produce un instalador nativo por sistema
+   operativo. Está incluido en el JDK.
+3. **Sacar el driver del module path**: dejarlo en el classpath del
+   launcher (`--class-path`) y solo poner en el module path las
+   dependencias modulares. Requiere ajustar la configuración de
+   `org.beryx.jlink`.
+
+Este documento describe la ruta con `jlink` puro. Si esa ruta se
+descarta por complejidad, la alternativa recomendada es `jpackage`.
+
 ## 1. Agregar el plugin `org.beryx.jlink`
 
 En `build.gradle`, dentro del bloque `plugins`:
@@ -37,16 +65,18 @@ module GestionBoletos {
     requires javafx.fxml;
     requires org.slf4j;
 
-    exports controladores to javafx.fxml;
     exports model;
 
     opens controladores to javafx.fxml;
-    opens resources to javafx.fxml;
 }
 ```
 
-Los `opens` son necesarios para que JavaFX pueda inyectar los campos
-`@FXML` mediante reflexión.
+El `opens controladores to javafx.fxml` es necesario para que JavaFX
+pueda inyectar los campos `@FXML` en los controladores mediante
+reflexión. Los archivos FXML viven en `src/main/resources/` (al nivel
+raíz, sin subdirectorio) y no necesitan declaración `opens` en el
+`module-info.java` porque se cargan como recursos del classpath, no
+como clases Java.
 
 ## 3. Configurar `application` y `jlink`
 

@@ -24,8 +24,8 @@ Docker local, y JDBC como driver. Se conservan los paquetes `dao/`
 (contrato genérico `DAO<T>`) y `persistencia/` (implementaciones)
 tal como pide la indicación.
 
-Las credenciales se leen desde variables de entorno o desde un
-archivo `.env` local (ver ADR 0003 pendiente).
+Las credenciales se leen desde variables de entorno, o desde un
+archivo `.env` local que `ConfigBD` carga si está presente.
 
 ## Consecuencias
 

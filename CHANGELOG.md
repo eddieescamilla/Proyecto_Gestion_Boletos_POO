@@ -10,9 +10,25 @@ Cambios en `develop` que aún no han sido promovidos a `main`.
 
 - (nada por ahora)
 
-## [1.4.0] - 2026-09-29
+## [1.5.0] - 2026-09-29
 
-Cierre del Sprint 2. Corresponde a la Entrega 4 del curso.
+Segundo release del Sprint 2 (Semanas 7 y 8). Consolida el trabajo de
+endurecimiento y calidad que quedó fuera del corte inicial de la Entrega 4.
+
+### Agregado
+
+- Configuración de credenciales por archivo `.env` local (además de las
+  variables de entorno ya soportadas), con `.env.example` como plantilla.
+- Workflow de GitHub Actions (`.github/workflows/build.yml`) que compila y
+  corre las pruebas contra un servicio de Postgres 16 en cada push y PR.
+- Pruebas unitarias para `Categoria`, `DescuentoFijo`/`DescuentoPorcentaje`,
+  `Evento` y `Compra`.
+- Tabla de integrantes en el README con nombre, carnet y usuario de GitHub.
+
+## [1.4.0] - 2026-09-28
+
+Primer release del Sprint 2 (Semanas 7 y 8). Corresponde a la **Entrega 4**
+del curso.
 
 ### Agregado
 
@@ -22,13 +38,6 @@ Cierre del Sprint 2. Corresponde a la Entrega 4 del curso.
   persistencia se ejecutan en `Task` de JavaFX para no bloquear la interfaz.
 - Métodos `EventoPersistencia.actualizarEvento(Evento)` y
   `UsuarioPersistencia.actualizarEstado(String, boolean)` en la capa DAO.
-- Configuración de credenciales por archivo `.env` local (además de las
-  variables de entorno ya soportadas), con `.env.example` como plantilla.
-- Workflow de GitHub Actions (`.github/workflows/build.yml`) que compila y
-  corre las pruebas contra un servicio de Postgres 16 en cada push y PR.
-- Pruebas unitarias para `Categoria`, `DescuentoFijo`/`DescuentoPorcentaje`,
-  `Evento` y `Compra`.
-- Tabla de integrantes en el README con nombre, carnet y usuario de GitHub.
 
 ### Cambiado
 
@@ -39,40 +48,45 @@ Cierre del Sprint 2. Corresponde a la Entrega 4 del curso.
 - `Compra.aplicarDescuento(String)` acepta códigos `null` y normaliza el
   código con `trim().toUpperCase()` antes de compararlo.
 
-## [1.3.0] - 2026-09-28
+## [1.3.0] - 2026-09-19
 
-Cierre del Sprint 1 (Semanas 7 y 8). Corresponde a la Entrega 3 del curso.
+Semana 6. Introducción de la capa de persistencia.
 
 ### Agregado
 
-- Interfaz gráfica en JavaFX 21 con las 8 pantallas del sistema
-  (Login, Registro, Eventos, Compra, Historial, Panel de Administración
-  con sus tres pestañas), enlazadas por FXML a controladores en el paquete
-  `controladores/`.
-- Paquete `catalogo/` con las enumeraciones `Categoria`, `RolUsuario` y
-  `TipoPago`.
-- Paquete `util/` con `Alertas` y `Navegacion`.
 - Persistencia con PostgreSQL vía JDBC en el paquete `persistencia/`
   (`ConexionBD`, `ConfigBD`, `UsuarioPersistencia`, `EventoPersistencia`,
   `CompraPersistencia`) y contrato genérico `DAO<T>`.
+- `docker-compose.yml` con PostgreSQL 16 para desarrollo local.
 - Historial de compras del cliente con filtro por fechas (HU-06).
-- Reporte de ventas por categoría de evento (HU-09).
-- Javadoc en todas las clases y miembros públicos.
-- Documento `docs/decisiones-sprint7-8.md` con la planificación del sprint.
+- Reporte de ventas por categoría de evento (HU-09), en su versión de
+  consola.
 
-## [1.2.0] - Semana 5
+## [1.2.0] - 2026-09-12
+
+Semana 5. Concurrencia y autenticación real.
+
+### Agregado
 
 - Ejecución concurrente con dos hilos en `hilos/HiloMensaje`.
 - Autenticación real con `model.GestorUsuarios` y `model.Usuario`.
 - `Evento` extendido con categoría, fecha y lugar.
 - Registro de compras exitosas en `model.RepositorioCompras`.
 
-## [1.1.0] - Semana 4
+## [1.1.0] - 2026-09-05
+
+Semana 4. Patrón de diseño para descuentos.
+
+### Agregado
 
 - Patrón Strategy aplicado a los descuentos (`patrones.strategy.Descuento`
   con implementaciones `DescuentoFijo` y `DescuentoPorcentaje`).
 
-## [1.0.0] - Semana 3
+## [1.0.0] - 2026-08-24
+
+Semanas 1 a 3. Modelo inicial del dominio.
+
+### Agregado
 
 - Diseño e implementación de clases abstractas (`Persona`) e interfaces
   (`Descuento`) para la primera versión del modelo de dominio.

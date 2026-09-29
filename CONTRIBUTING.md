@@ -90,7 +90,7 @@ Ejemplos:
 ```
 feat(gui): conectar Panel de Administracion con la persistencia
 fix(model): permitir rehidratar eventos con fecha pasada
-chore(db): agregar foreign keys e indices al schema
+chore(config): cargar credenciales desde archivo .env local
 docs(readme): agregar usuarios de github a la lista de integrantes
 test: pruebas unitarias para modelo, estrategias y catalogo
 ```
