@@ -1,8 +1,12 @@
 # ADR 0001 — Usar Flyway para migraciones de esquema
 
-- Estado: aceptada
+- Estado: propuesta (PR #62 abierto, pendiente de revisión)
 - Fecha: 2026-09-28
 - Contexto: Sprint 2, endurecimiento de la capa de persistencia.
+
+> Cuando #62 se mergee a `develop`, el estado pasa a "aceptada" y se
+> actualiza `docs/entidad-relacion.md` para reflejar el esquema
+> versionado.
 
 ## Contexto
 

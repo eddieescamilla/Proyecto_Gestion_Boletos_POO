@@ -1,8 +1,10 @@
 # Diagrama entidad-relación
 
 Este documento describe el esquema de la base de datos PostgreSQL del
-sistema. El esquema vive en migraciones Flyway bajo
-`src/main/resources/db/migration/` y se actualiza en cada release.
+sistema tal como está en `main` y `develop` al momento de escribirlo.
+El esquema se crea desde `persistencia.ConexionBD.crearTablas()` con
+sentencias `CREATE TABLE IF NOT EXISTS` que corren en la primera
+conexión.
 
 ## Diagrama
 
@@ -30,24 +32,20 @@ erDiagram
 
     COMPRAS {
       SERIAL  id PK
-      TEXT    correo_comprador FK
-      TEXT    nombre_evento FK
+      TEXT    correo_comprador
+      TEXT    nombre_evento
       TEXT    categoria_evento
       INTEGER cantidad_boletos
       REAL    total
       TEXT    fecha
     }
-
-    AUDITORIA {
-      SERIAL id PK
-      TEXT   fecha_hora
-      TEXT   actor
-      TEXT   accion
-      TEXT   entidad
-      TEXT   referencia
-      TEXT   detalle
-    }
 ```
+
+> Las relaciones dibujadas son las lógicas del dominio. Actualmente
+> `compras.correo_comprador` y `compras.nombre_evento` viajan como
+> `TEXT` sin restricción de foreign key a nivel de motor. La
+> integridad se aplica desde el código Java. La imposición de FKs a
+> nivel de BD queda pendiente hasta que se mergee el PR #62 (Flyway).
 
 ## Tablas
 
@@ -56,18 +54,20 @@ erDiagram
 Guarda los usuarios registrados en el sistema, tanto administradores
 como clientes.
 
-| Columna  | Tipo             | Restricciones      |
-|----------|------------------|--------------------|
-| correo   | TEXT             | PRIMARY KEY        |
-| nombre   | TEXT             | NOT NULL           |
-| clave    | TEXT             | NOT NULL           |
-| rol      | TEXT             | NOT NULL           |
-| activo   | INTEGER          | NOT NULL, 0 o 1    |
+| Columna  | Tipo    | Restricciones      |
+|----------|---------|--------------------|
+| correo   | TEXT    | PRIMARY KEY        |
+| nombre   | TEXT    | NOT NULL           |
+| clave    | TEXT    | NOT NULL           |
+| rol      | TEXT    | NOT NULL           |
+| activo   | INTEGER | NOT NULL, 0 o 1    |
 
 - `rol` toma los valores del enum `catalogo.RolUsuario`: `ADMINISTRADOR`
   o `CLIENTE`.
 - `activo` se guarda como entero (0/1) por compatibilidad con motores
   que no traen tipo booleano nativo.
+- `clave` actualmente se guarda en texto plano. Hashear con BCrypt
+  está anotado en el issue #58 como backlog.
 
 ### `eventos`
 
@@ -83,7 +83,7 @@ Cada evento se identifica por su nombre único.
 | precio_boleto           | REAL    | NOT NULL           |
 
 - `categoria` guarda el valor "de BD" del enum `catalogo.Categoria`
-  (sin tildes): `Musica`, `Teatro`, etc.
+  (sin tildes): `Musica`, `Teatro`.
 - `fecha` se guarda como texto ISO-8601 (`yyyy-MM-dd`) para portabilidad.
 
 ### `compras`
@@ -94,44 +94,30 @@ confirmada.
 | Columna            | Tipo    | Restricciones                              |
 |--------------------|---------|--------------------------------------------|
 | id                 | SERIAL  | PRIMARY KEY                                |
-| correo_comprador   | TEXT    | NOT NULL, FK → `usuarios(correo)`          |
-| nombre_evento      | TEXT    | NOT NULL, FK → `eventos(nombre_evento)`    |
+| correo_comprador   | TEXT    | NOT NULL                                   |
+| nombre_evento      | TEXT    | NOT NULL                                   |
 | categoria_evento   | TEXT    | NOT NULL                                   |
 | cantidad_boletos   | INTEGER | NOT NULL                                   |
 | total              | REAL    | NOT NULL                                   |
 | fecha              | TEXT    | NOT NULL, ISO-8601                         |
 
-- Ambas foreign keys usan `ON UPDATE CASCADE` y `ON DELETE RESTRICT`
-  para preservar la integridad histórica.
 - `categoria_evento` se duplica desde `eventos` para acelerar el
   reporte por categoría (HU-09) y para conservar la categoría original
   incluso si el evento cambia de categoría después.
 
-### `auditoria`
+## Cambios pendientes en el esquema
 
-Registra las acciones sensibles ejecutadas desde el Panel de
-Administración. Es una tabla de apéndice: no se actualiza ni se elimina.
+Estos cambios están abiertos como PRs pero aún no se han mergeado a
+`develop`. Este documento se actualizará cuando entren:
 
-| Columna     | Tipo    | Restricciones      |
-|-------------|---------|--------------------|
-| id          | SERIAL  | PRIMARY KEY        |
-| fecha_hora  | TEXT    | NOT NULL, ISO-8601 |
-| actor       | TEXT    | NOT NULL           |
-| accion      | TEXT    | NOT NULL           |
-| entidad     | TEXT    | NOT NULL           |
-| referencia  | TEXT    |                    |
-| detalle     | TEXT    |                    |
-
-## Índices
-
-Además de los índices implícitos por las llaves primarias, existen los
-siguientes índices explícitos para acelerar las consultas más comunes:
-
-- `idx_compras_categoria` sobre `compras(categoria_evento)` — usado por
-  el reporte por categoría (HU-09).
-- `idx_compras_correo` sobre `compras(correo_comprador)` — usado por el
-  historial del cliente (HU-06).
-- `idx_compras_fecha` sobre `compras(fecha)` — usado por el filtro por
-  fechas del historial (HU-06).
-- `idx_eventos_categoria` sobre `eventos(categoria)` — usado por los
-  listados filtrados del Panel de Administración.
+- **#62 (Flyway + FKs + índices)**: migrará el esquema a
+  `src/main/resources/db/migration/` con archivos versionados,
+  agregará foreign keys en `compras` hacia `usuarios(correo)` y
+  `eventos(nombre_evento)` (ambas con `ON UPDATE CASCADE`,
+  `ON DELETE RESTRICT`) y creará índices en
+  `compras(categoria_evento)`, `compras(correo_comprador)`,
+  `compras(fecha)` y `eventos(categoria)`.
+- **#64 (SLF4J + auditoría)**: agregará la tabla `auditoria` con
+  columnas `id`, `fecha_hora`, `actor`, `accion`, `entidad`,
+  `referencia` y `detalle` para registrar acciones sensibles desde
+  el Panel de Administración.

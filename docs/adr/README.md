@@ -10,7 +10,7 @@ consideradas.
 
 ## Índice
 
-- [0001 — Usar Flyway para migraciones de esquema](./0001-usar-flyway-para-migraciones.md)
+- [0001 — Usar Flyway para migraciones de esquema](./0001-usar-flyway-para-migraciones.md) *(propuesta — PR #62)*
 - [0002 — Persistencia con PostgreSQL y patrón DAO](./0002-persistencia-con-postgresql-y-dao.md)
 - [0003 — Task de JavaFX para operaciones de persistencia](./0003-task-para-operaciones-de-persistencia-en-javafx.md)
 
