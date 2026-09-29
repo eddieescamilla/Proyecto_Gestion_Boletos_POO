@@ -52,7 +52,10 @@ public class Compra {
    * @return {@code true} si el código es válido y se aplicó el descuento
    */
   public boolean aplicarDescuento(String codigo) {
-    Descuento descuento = obtenerDescuentoPorCodigo(codigo);
+    if (codigo == null) {
+      return false;
+    }
+    Descuento descuento = obtenerDescuentoPorCodigo(codigo.trim().toUpperCase());
     if (descuento == null) {
       return false;
     }

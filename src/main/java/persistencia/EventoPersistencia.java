@@ -122,6 +122,31 @@ public class EventoPersistencia implements DAO<Evento> {
     }
   }
 
+  /**
+   * Actualiza los datos de un evento existente (categoría, fecha, lugar, inventario y precio).
+   *
+   * <p>El nombre del evento es la llave primaria y no se modifica.
+   *
+   * @param evento evento con los datos actualizados
+   * @return {@code true} si se actualizó el evento
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
+  public boolean actualizarEvento(Evento evento) {
+    String sql = "UPDATE eventos SET categoria = ?, fecha = ?, lugar = ?, " +
+        "inventario_disponible = ?, precio_boleto = ? WHERE nombre_evento = ?";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setString(1, evento.getCategoria());
+      statement.setString(2, evento.getFecha().toString());
+      statement.setString(3, evento.getLugar());
+      statement.setInt(4, evento.getInventarioDisponible());
+      statement.setDouble(5, evento.getPrecioBoleto());
+      statement.setString(6, evento.getNombreEvento());
+      return statement.executeUpdate() > 0;
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo actualizar el evento.", e);
+    }
+  }
+
   private Evento mapearEvento(ResultSet resultado) throws SQLException {
     String nombre = resultado.getString("nombre_evento");
     String categoria = resultado.getString("categoria");

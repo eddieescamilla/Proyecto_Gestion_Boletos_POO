@@ -6,6 +6,9 @@ build/
 .kotlin
 .code-review-graph
 
+# Variables locales de configuración (ver .env.example como referencia).
+.env
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml
