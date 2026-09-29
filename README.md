@@ -1,5 +1,10 @@
 # Sistema de Gestión de Venta de Boletos para Eventos
 
+[![build](https://github.com/eddieescamilla/Proyecto_Gestion_Boletos_POO/actions/workflows/build.yml/badge.svg?branch=develop)](https://github.com/eddieescamilla/Proyecto_Gestion_Boletos_POO/actions/workflows/build.yml)
+[![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net/)
+[![JavaFX 21](https://img.shields.io/badge/JavaFX-21-blue.svg)](https://openjfx.io/)
+[![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
+
 ## Integrantes
 
 | Nombre | Carnet | GitHub |
