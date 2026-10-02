@@ -144,4 +144,64 @@ public class Main {
 
         Compra compra = new Compra(evento, comprador, cantidad);
         double total = compra.calcularTotal();
-        System.out.println("\nTotal a pagar: $" +
+        System.out.println("\nTotal a pagar: $" + total);
+
+        String codigo = consola.leerCodigoDescuento();
+        if (!codigo.equalsIgnoreCase("no") && !codigo.isBlank()) {
+          boolean descuentoAplicado = compra.aplicarDescuento(codigo);
+          if (descuentoAplicado) {
+            System.out.println("Total con descuento: $" + compra.getTotal());
+          } else {
+            System.out.println("Codigo de descuento invalido. No se aplico ningun descuento.");
+          }
+        }
+
+        boolean exito = compra.confirmarPago();
+        if (exito) {
+          boolean inventarioDescontado = sistema.descontarInventarioAtomico(
+              evento.getNombreEvento(), compra.getCantidadBoletos());
+          if (!inventarioDescontado) {
+            System.out.println(
+                "No se pudo completar la compra: el inventario cambio justo antes de confirmar.");
+          } else {
+            compraPersistencia.guardarCompra(compra);
+            System.out.println("\n=== Confirmacion de Compra ===");
+            System.out.println("Comprador          : " + comprador.getNombre());
+            System.out.println("Evento             : " + evento.getNombreEvento());
+            System.out.println("Boletos comprados  : " + compra.getCantidadBoletos());
+            System.out.println("Total pagado       : $" + compra.getTotal());
+            System.out.println(
+                "Inventario restante: " + evento.getInventarioDisponible() + " boletos");
+          }
+        } else {
+          System.out.println("No se pudo completar la compra: stock insuficiente.");
+        }
+
+      } catch (NumberFormatException e) {
+        System.out.println("\nError: debe ingresar solo numeros en ese campo.");
+        System.out.println("La operacion no se completo, pero el sistema sigue funcionando.");
+      } catch (Exception e) {
+        System.out.println("\nError controlado: " + e.getMessage());
+        System.out.println("La operacion no se completo, pero el sistema sigue funcionando.");
+      }
+
+      continuar = consola.leerContinuar();
+
+    } while (continuar);
+  }
+
+  private static void ejecutarHilosDemo() {
+    HiloMensaje hilo1 = new HiloMensaje("Hilo-1", "Sistema iniciado correctamente");
+    HiloMensaje hilo2 = new HiloMensaje("Hilo-2", "Verificando inventario de eventos");
+
+    hilo1.start();
+    hilo2.start();
+
+    try {
+      hilo1.join();
+      hilo2.join();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+}
