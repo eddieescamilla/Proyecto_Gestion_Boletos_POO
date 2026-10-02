@@ -1,6 +1,7 @@
 package model;
 
 import patrones.strategy.Descuento;
+import persistencia.DescuentoPersistencia;
 import patrones.strategy.DescuentoFijo;
 import patrones.strategy.DescuentoPorcentaje;
 
@@ -11,6 +12,7 @@ public class Compra {
     private int cantidadBoletos;
     private double total;
     private boolean estadoTransaccion;
+    private final DescuentoPersistencia descuentoPersistencia;
 
     public Compra(Evento evento, Comprador comprador, int cantidadBoletos) {
         if (cantidadBoletos <= 0) {
@@ -20,6 +22,7 @@ public class Compra {
         this.comprador = comprador;
         this.cantidadBoletos = cantidadBoletos;
         this.estadoTransaccion = false;
+        this.descuentoPersistencia = new DescuentoPersistencia();
     }
 
     public double calcularTotal() {
@@ -45,14 +48,24 @@ public class Compra {
     }
 
     private Descuento obtenerDescuentoPorCodigo(String codigo) {
-        switch (codigo) {
-            case "DESC10":
-                return new DescuentoPorcentaje(10.0);
-            case "DESC5":
-                return new DescuentoPorcentaje(5.0);
-            default:
-                return null;
+        if (codigo == null) {
+            return null;
         }
+        String codigoNormalizado = codigo.trim().toUpperCase();
+        if (codigoNormalizado.isEmpty()) {
+            return null;
+        }
+        DescuentoConfig config = descuentoPersistencia.buscarPorId(codigoNormalizado);
+        if (config == null) {
+            return null;
+        }
+        if ("PORCENTAJE".equalsIgnoreCase(config.getTipo())) {
+            return new DescuentoPorcentaje(config.getValor());
+        }
+        if ("FIJO".equalsIgnoreCase(config.getTipo())) {
+            return new DescuentoFijo(config.getValor());
+        }
+        return null;
     }
 
     public boolean confirmarPago() {

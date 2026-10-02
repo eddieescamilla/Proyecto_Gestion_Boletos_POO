@@ -87,6 +87,19 @@ public class EventoPersistencia implements DAO<Evento> {
         }
     }
 
+    public boolean descontarInventarioAtomico(String nombreEvento, int cantidad) {
+        String sql = "UPDATE eventos SET inventario_disponible = inventario_disponible - ? " +
+                "WHERE nombre_evento = ? AND inventario_disponible >= ?";
+        try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+            statement.setInt(1, cantidad);
+            statement.setString(2, nombreEvento);
+            statement.setInt(3, cantidad);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("No se pudo descontar el inventario.", e);
+        }
+    }
+
     private Evento mapearEvento(ResultSet resultado) throws SQLException {
         String nombre = resultado.getString("nombre_evento");
         String categoria = resultado.getString("categoria");

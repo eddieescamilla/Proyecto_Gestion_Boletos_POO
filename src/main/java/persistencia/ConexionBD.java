@@ -49,6 +49,11 @@ public class ConexionBD {
                     "cantidad_boletos INTEGER NOT NULL, " +
                     "total REAL NOT NULL, " +
                     "fecha TEXT NOT NULL)");
+            statement.execute("CREATE TABLE IF NOT EXISTS descuento_config (" +
+                    "codigo TEXT PRIMARY KEY, " +
+                    "tipo TEXT NOT NULL, " +
+                    "valor REAL NOT NULL, " +
+                    "activo INTEGER NOT NULL)");
         }
     }
 
@@ -72,6 +77,15 @@ public class ConexionBD {
                             "('Festival de Jazz', 'Musica', '2026-10-15', 'Teatro Nacional', 26, 40.0)");
                     statement.executeUpdate("INSERT INTO eventos VALUES " +
                             "('Obra de Teatro', 'Teatro', '2026-12-05', 'Teatro Presidente', 15, 15.5)");
+                }
+            }
+            try (ResultSet resultadoDescuentos = statement.executeQuery("SELECT COUNT(*) AS total FROM descuento_config")) {
+                resultadoDescuentos.next();
+                if (resultadoDescuentos.getInt("total") == 0) {
+                    statement.executeUpdate("INSERT INTO descuento_config (codigo, tipo, valor, activo) VALUES " +
+                            "('DESC10', 'PORCENTAJE', 10.0, 1)");
+                    statement.executeUpdate("INSERT INTO descuento_config (codigo, tipo, valor, activo) VALUES " +
+                            "('DESC5', 'PORCENTAJE', 5.0, 1)");
                 }
             }
         }

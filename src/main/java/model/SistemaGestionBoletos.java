@@ -39,6 +39,10 @@ public class SistemaGestionBoletos {
         return persistencia.actualizarInventario(evento);
     }
 
+    public boolean descontarInventarioAtomico(String nombreEvento, int cantidad) {
+        return persistencia.descontarInventarioAtomico(nombreEvento, cantidad);
+    }
+
     public List<Evento> getListaEventos() {
         return persistencia.listarTodos();
     }
