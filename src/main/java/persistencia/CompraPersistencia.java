@@ -1,8 +1,6 @@
 package persistencia;
 
 import dao.DAO;
-import model.Compra;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,114 +8,157 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import model.Compra;
 
+/** Persistencia de las compras en PostgreSQL mediante el patrón DAO. */
 public class CompraPersistencia implements DAO<RegistroCompra> {
 
-    private Connection conexion;
+  private Connection conexion;
 
-    public CompraPersistencia() {
-        this.conexion = ConexionBD.obtenerConexion();
+  /** Crea la persistencia usando la conexión compartida a la base de datos. */
+  public CompraPersistencia() {
+    this.conexion = ConexionBD.obtenerConexion();
+  }
+
+  /**
+   * Guarda una compra confirmada con la fecha actual.
+   *
+   * @param compra compra a registrar
+   * @return {@code true} si se guardó correctamente
+   */
+  public boolean guardarCompra(Compra compra) {
+    RegistroCompra registro = new RegistroCompra(
+        compra.getComprador().getCorreo(),
+        compra.getEvento().getNombreEvento(),
+        compra.getEvento().getCategoria(),
+        compra.getCantidadBoletos(),
+        compra.getTotal(),
+        LocalDate.now()
+    );
+    return guardar(registro);
+  }
+
+  /**
+   * Guarda un registro de compra.
+   *
+   * @param registro registro de compra a guardar
+   * @return {@code true} si se guardó correctamente
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
+  @Override
+  public boolean guardar(RegistroCompra registro) {
+    String sql = "INSERT INTO compras (correo_comprador, nombre_evento, categoria_evento, " +
+        "cantidad_boletos, total, fecha) VALUES (?, ?, ?, ?, ?, ?)";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setString(1, registro.getCorreoComprador());
+      statement.setString(2, registro.getNombreEvento());
+      statement.setString(3, registro.getCategoriaEvento());
+      statement.setInt(4, registro.getCantidadBoletos());
+      statement.setDouble(5, registro.getTotal());
+      statement.setString(6, registro.getFecha().toString());
+      statement.executeUpdate();
+      return true;
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo guardar el registro de la compra.", e);
     }
+  }
 
-    public boolean guardarCompra(Compra compra) {
-        RegistroCompra registro = new RegistroCompra(
-                compra.getComprador().getCorreo(),
-                compra.getEvento().getNombreEvento(),
-                compra.getEvento().getCategoria(),
-                compra.getCantidadBoletos(),
-                compra.getTotal(),
-                LocalDate.now()
-        );
-        return guardar(registro);
+  /**
+   * Busca una compra por su identificador numérico.
+   *
+   * @param id identificador de la compra
+   * @return el registro encontrado, o {@code null} si no existe
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
+  @Override
+  public RegistroCompra buscarPorId(String id) {
+    String sql = "SELECT * FROM compras WHERE id = ?";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setInt(1, Integer.parseInt(id));
+      try (ResultSet resultado = statement.executeQuery()) {
+        return resultado.next() ? mapearRegistro(resultado) : null;
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo buscar la compra.", e);
     }
+  }
 
-    @Override
-    public boolean guardar(RegistroCompra registro) {
-        String sql = "INSERT INTO compras (correo_comprador, nombre_evento, categoria_evento, " +
-                "cantidad_boletos, total, fecha) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement statement = conexion.prepareStatement(sql)) {
-            statement.setString(1, registro.getCorreoComprador());
-            statement.setString(2, registro.getNombreEvento());
-            statement.setString(3, registro.getCategoriaEvento());
-            statement.setInt(4, registro.getCantidadBoletos());
-            statement.setDouble(5, registro.getTotal());
-            statement.setString(6, registro.getFecha().toString());
-            statement.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            throw new RuntimeException("No se pudo guardar el registro de la compra.", e);
+  /**
+   * Devuelve todas las compras registradas.
+   *
+   * @return lista con todos los registros de compra
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
+  @Override
+  public List<RegistroCompra> listarTodos() {
+    List<RegistroCompra> registros = new ArrayList<>();
+    String sql = "SELECT * FROM compras";
+    try (PreparedStatement statement = conexion.prepareStatement(sql);
+        ResultSet resultado = statement.executeQuery()) {
+      while (resultado.next()) {
+        registros.add(mapearRegistro(resultado));
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo listar las compras.", e);
+    }
+    return registros;
+  }
+
+  /**
+   * Elimina una compra por su identificador numérico.
+   *
+   * @param id identificador de la compra
+   * @return {@code true} si se eliminó la compra
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
+  @Override
+  public boolean eliminar(String id) {
+    String sql = "DELETE FROM compras WHERE id = ?";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setInt(1, Integer.parseInt(id));
+      return statement.executeUpdate() > 0;
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo eliminar la compra.", e);
+    }
+  }
+
+  /**
+   * Genera el reporte de boletos vendidos e ingreso total de una categoría.
+   *
+   * @param categoria categoría tal como está guardada en la base de datos
+   * @return el reporte en formato de texto, o un mensaje si no hay datos
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
+  public String generarReportePorCategoria(String categoria) {
+    if (categoria == null || categoria.isBlank()) {
+      return "Debe seleccionar una categoria antes de generar el reporte.";
+    }
+    String sql = "SELECT SUM(cantidad_boletos) AS total_boletos, SUM(total) AS ingreso_total " +
+        "FROM compras WHERE categoria_evento = ?";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setString(1, categoria);
+      try (ResultSet resultado = statement.executeQuery()) {
+        if (resultado.next() && resultado.getInt("total_boletos") > 0) {
+          int totalBoletos = resultado.getInt("total_boletos");
+          double ingresoTotal = resultado.getDouble("ingreso_total");
+          return "Reporte - Categoria: " + categoria
+              + "\nBoletos vendidos: " + totalBoletos
+              + "\nIngreso total: $" + ingresoTotal;
         }
+        return "No hay datos disponibles para la categoria '" + categoria + "'.";
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo generar el reporte.", e);
     }
+  }
 
-    @Override
-    public RegistroCompra buscarPorId(String id) {
-        String sql = "SELECT * FROM compras WHERE id = ?";
-        try (PreparedStatement statement = conexion.prepareStatement(sql)) {
-            statement.setInt(1, Integer.parseInt(id));
-            try (ResultSet resultado = statement.executeQuery()) {
-                return resultado.next() ? mapearRegistro(resultado) : null;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("No se pudo buscar la compra.", e);
-        }
-    }
-
-    @Override
-    public List<RegistroCompra> listarTodos() {
-        List<RegistroCompra> registros = new ArrayList<>();
-        String sql = "SELECT * FROM compras";
-        try (PreparedStatement statement = conexion.prepareStatement(sql);
-             ResultSet resultado = statement.executeQuery()) {
-            while (resultado.next()) {
-                registros.add(mapearRegistro(resultado));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("No se pudo listar las compras.", e);
-        }
-        return registros;
-    }
-
-    @Override
-    public boolean eliminar(String id) {
-        String sql = "DELETE FROM compras WHERE id = ?";
-        try (PreparedStatement statement = conexion.prepareStatement(sql)) {
-            statement.setInt(1, Integer.parseInt(id));
-            return statement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            throw new RuntimeException("No se pudo eliminar la compra.", e);
-        }
-    }
-
-    public String generarReportePorCategoria(String categoria) {
-        if (categoria == null || categoria.isBlank()) {
-            return "Debe seleccionar una categoria antes de generar el reporte.";
-        }
-        String sql = "SELECT SUM(cantidad_boletos) AS total_boletos, SUM(total) AS ingreso_total " +
-                "FROM compras WHERE categoria_evento = ?";
-        try (PreparedStatement statement = conexion.prepareStatement(sql)) {
-            statement.setString(1, categoria);
-            try (ResultSet resultado = statement.executeQuery()) {
-                if (resultado.next() && resultado.getInt("total_boletos") > 0) {
-                    int totalBoletos = resultado.getInt("total_boletos");
-                    double ingresoTotal = resultado.getDouble("ingreso_total");
-                    return "Reporte - Categoria: " + categoria
-                            + "\nBoletos vendidos: " + totalBoletos
-                            + "\nIngreso total: $" + ingresoTotal;
-                }
-                return "No hay datos disponibles para la categoria '" + categoria + "'.";
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("No se pudo generar el reporte.", e);
-        }
-    }
-
-    private RegistroCompra mapearRegistro(ResultSet resultado) throws SQLException {
-        String correo = resultado.getString("correo_comprador");
-        String nombreEvento = resultado.getString("nombre_evento");
-        String categoria = resultado.getString("categoria_evento");
-        int cantidad = resultado.getInt("cantidad_boletos");
-        double total = resultado.getDouble("total");
-        LocalDate fecha = LocalDate.parse(resultado.getString("fecha"));
-        return new RegistroCompra(correo, nombreEvento, categoria, cantidad, total, fecha);
-    }
+  private RegistroCompra mapearRegistro(ResultSet resultado) throws SQLException {
+    String correo = resultado.getString("correo_comprador");
+    String nombreEvento = resultado.getString("nombre_evento");
+    String categoria = resultado.getString("categoria_evento");
+    int cantidad = resultado.getInt("cantidad_boletos");
+    double total = resultado.getDouble("total");
+    LocalDate fecha = LocalDate.parse(resultado.getString("fecha"));
+    return new RegistroCompra(correo, nombreEvento, categoria, cantidad, total, fecha);
+  }
 }

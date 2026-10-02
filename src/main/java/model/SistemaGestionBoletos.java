@@ -1,49 +1,82 @@
 package model;
 
+import java.util.List;
 import persistencia.EventoPersistencia;
 
-import java.util.List;
-
+/** Gestiona la consulta, selección e inventario de los eventos. */
 public class SistemaGestionBoletos {
 
-    private EventoPersistencia persistencia;
+  private EventoPersistencia persistencia;
 
-    public SistemaGestionBoletos() {
-        this.persistencia = new EventoPersistencia();
-    }
+  /** Crea el sistema con acceso a la persistencia de eventos. */
+  public SistemaGestionBoletos() {
+    this.persistencia = new EventoPersistencia();
+  }
 
-    public boolean cargarEventos() {
-        List<Evento> eventos = persistencia.listarTodos();
-        if (eventos.isEmpty()) {
-            throw new RuntimeException("No hay eventos validos para cargar.");
-        }
-        return true;
+  /**
+   * Verifica que existan eventos en la base de datos.
+   *
+   * @return {@code true} si hay eventos disponibles
+   * @throws RuntimeException si no hay eventos para cargar
+   */
+  public boolean cargarEventos() {
+    List<Evento> eventos = persistencia.listarTodos();
+    if (eventos.isEmpty()) {
+      throw new RuntimeException("No hay eventos validos para cargar.");
     }
+    return true;
+  }
 
-    public void mostrarEventos() {
-        List<Evento> eventos = persistencia.listarTodos();
-        for (int i = 0; i < eventos.size(); i++) {
-            System.out.println((i + 1) + ". " + eventos.get(i));
-        }
+  /** Muestra en consola la lista numerada de eventos. */
+  public void mostrarEventos() {
+    List<Evento> eventos = persistencia.listarTodos();
+    for (int i = 0; i < eventos.size(); i++) {
+      System.out.println((i + 1) + ". " + eventos.get(i));
     }
+  }
 
-    public Evento seleccionarEvento(int opcion) {
-        List<Evento> eventos = persistencia.listarTodos();
-        if (opcion < 1 || opcion > eventos.size()) {
-            throw new IllegalArgumentException("Opcion de evento invalida.");
-        }
-        return eventos.get(opcion - 1);
+  /**
+   * Devuelve el evento que corresponde a una opción de la lista.
+   *
+   * @param opcion número del evento en la lista, empezando en 1
+   * @return el evento seleccionado
+   * @throws IllegalArgumentException si la opción está fuera de rango
+   */
+  public Evento seleccionarEvento(int opcion) {
+    List<Evento> eventos = persistencia.listarTodos();
+    if (opcion < 1 || opcion > eventos.size()) {
+      throw new IllegalArgumentException("Opcion de evento invalida.");
     }
+    return eventos.get(opcion - 1);
+  }
 
-    public boolean actualizarInventario(Evento evento) {
-        return persistencia.actualizarInventario(evento);
-    }
+  /**
+   * Guarda en la base de datos el inventario actual de un evento.
+   *
+   * @param evento evento con el inventario actualizado
+   * @return {@code true} si se actualizó
+   */
+  public boolean actualizarInventario(Evento evento) {
+    return persistencia.actualizarInventario(evento);
+  }
 
-    public boolean descontarInventarioAtomico(String nombreEvento, int cantidad) {
-        return persistencia.descontarInventarioAtomico(nombreEvento, cantidad);
-    }
+  /**
+   * Descuenta el inventario de un evento de forma atómica, evitando sobreventa.
+   *
+   * @param nombreEvento nombre del evento al que se le descuenta inventario
+   * @param cantidad cantidad de boletos a descontar
+   * @return {@code true} si había inventario suficiente y se descontó
+   */
+  public boolean descontarInventarioAtomico(String nombreEvento, int cantidad) {
+    return persistencia.descontarInventarioAtomico(nombreEvento, cantidad);
+  }
 
-    public List<Evento> getListaEventos() {
-        return persistencia.listarTodos();
-    }
+  /**
+   * Devuelve todos los eventos de la base de datos.
+   *
+   * @return la lista de eventos
+   */
+  public List<Evento> getListaEventos() {
+    return persistencia.listarTodos();
+  }
 }
