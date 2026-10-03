@@ -7,16 +7,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sql.DataSource;
 import model.DescuentoConfig;
 
 /** Persistencia de los descuentos configurables en PostgreSQL mediante el patrón DAO. */
 public class DescuentoPersistencia implements DAO<DescuentoConfig> {
 
-  private Connection conexion;
+  private final DataSource dataSource;
 
-  /** Crea la persistencia usando la conexión compartida a la base de datos. */
+  /** Crea la persistencia usando el pool compartido de conexiones. */
   public DescuentoPersistencia() {
-    this.conexion = ConexionBD.obtenerConexion();
+    this.dataSource = ConexionBD.obtenerDataSource();
   }
 
   /**
@@ -29,7 +30,8 @@ public class DescuentoPersistencia implements DAO<DescuentoConfig> {
   @Override
   public boolean guardar(DescuentoConfig descuento) {
     String sql = "INSERT INTO descuento_config (codigo, tipo, valor, activo) VALUES (?, ?, ?, ?)";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, descuento.getCodigo());
       statement.setString(2, descuento.getTipo());
       statement.setDouble(3, descuento.getValor());
@@ -51,7 +53,8 @@ public class DescuentoPersistencia implements DAO<DescuentoConfig> {
   @Override
   public DescuentoConfig buscarPorId(String codigo) {
     String sql = "SELECT * FROM descuento_config WHERE codigo = ? AND activo = 1";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, codigo);
       try (ResultSet resultado = statement.executeQuery()) {
         return resultado.next() ? mapearDescuento(resultado) : null;
@@ -71,7 +74,8 @@ public class DescuentoPersistencia implements DAO<DescuentoConfig> {
   public List<DescuentoConfig> listarTodos() {
     List<DescuentoConfig> descuentos = new ArrayList<>();
     String sql = "SELECT * FROM descuento_config";
-    try (PreparedStatement statement = conexion.prepareStatement(sql);
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql);
         ResultSet resultado = statement.executeQuery()) {
       while (resultado.next()) {
         descuentos.add(mapearDescuento(resultado));
@@ -92,7 +96,8 @@ public class DescuentoPersistencia implements DAO<DescuentoConfig> {
   @Override
   public boolean eliminar(String codigo) {
     String sql = "DELETE FROM descuento_config WHERE codigo = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, codigo);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {

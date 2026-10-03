@@ -81,4 +81,9 @@ public class LoginController {
   private void irARegistro() {
     Navegacion.cambiarPantalla("Registro.fxml", "Registrarse");
   }
+
+  @FXML
+  private void irARecuperarClave() {
+    Navegacion.cambiarPantalla("RecuperarClave.fxml", "Recuperar clave");
+  }
 }

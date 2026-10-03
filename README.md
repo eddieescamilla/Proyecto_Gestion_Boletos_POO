@@ -275,6 +275,12 @@ el sistema operativo.
 
 **Usuario administrador de prueba:** `admin@boletos.com` / `admin123`
 
+> Desde la 1.7.3 el administrador se siembra solo si la variable de entorno
+> `BOLETOS_ADMIN_PASSWORD` está definida (en el sistema o en el archivo
+> `.env`). El `.env.example` ya la trae con `admin123` para desarrollo local;
+> para producción déjala en blanco o quítala para que la app arranque sin
+> credenciales conocidas, y crea el admin con un script propio.
+
 Para entrar como cliente, crea una cuenta desde el botón **Registrarme**.
 
 ### 3. Ejecutar la versión por consola (opcional)
