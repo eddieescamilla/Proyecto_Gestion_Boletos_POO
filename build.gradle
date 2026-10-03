@@ -3,8 +3,8 @@ plugins {
     id 'application'
 }
 
-group = 'org.example'
-version = '1.0-SNAPSHOT'
+group = 'sv.edu.uca.poo.boletos'
+version = '1.6.0'
 
 repositories {
     mavenCentral()

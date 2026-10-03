@@ -136,6 +136,25 @@ Todos los diagramas se encuentran en la carpeta [`diagramasUML/`](./diagramasUML
 - [Diagrama de secuencia](./diagramasUML/diagrama-secuencia.jpg)
 - [Diagrama de actividad](./diagramasUML/diagrama-actividad.jpg)
 
+## Documentación
+
+La documentación del proyecto vive en la carpeta [`docs/`](./docs):
+
+- [**Manual de usuario**](./docs/manual-usuario.md) — cómo usar la app
+  desde la GUI, paso a paso (cliente y administrador).
+- [**Manual técnico**](./docs/manual-tecnico.md) — vista de alto nivel
+  de la arquitectura, capas, patrones y flujo de datos.
+- [**Troubleshooting**](./docs/troubleshooting.md) — errores comunes
+  y cómo resolverlos.
+- [**Modelo entidad-relación**](./docs/entidad-relacion.md) — esquema
+  completo de la base de datos.
+- [**ADRs (decisiones arquitectónicas)**](./docs/adr/README.md) —
+  bitácora de por qué se tomó cada decisión estructural.
+- [**Empaquetado con jlink**](./docs/empaquetado-jlink.md) — guía para
+  generar la imagen de runtime.
+- [**Decisiones del Sprint 2**](./docs/decisiones-sprint7-8.md) —
+  planificación, roles y riesgos del sprint 2.
+
 ## Estructura del proyecto
 
 ```
