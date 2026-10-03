@@ -1,6 +1,7 @@
 package controladores;
 
 import catalogo.TipoPago;
+import hilos.EjecutorTareas;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -208,7 +209,7 @@ public class CompraController {
     tarea.setOnFailed(e -> Alertas.mostrarError("Comprar boletos",
         "No se pudo registrar la compra. Verifica que Docker esté en ejecución."));
 
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   private int leerCantidadValida() {
@@ -235,11 +236,6 @@ public class CompraController {
     return comprador;
   }
 
-  private void ejecutarEnSegundoPlano(Task<?> tarea) {
-    Thread hilo = new Thread(tarea);
-    hilo.setDaemon(true);
-    hilo.start();
-  }
 
   @FXML
   private void cancelar() {
