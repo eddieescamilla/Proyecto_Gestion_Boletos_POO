@@ -72,11 +72,13 @@ Los descuentos son intercambiables sin tocar la lógica de compra.
 concretas. `Compra.aplicarDescuento(Descuento)` recibe cualquier
 estrategia sin conocer su implementación.
 
-### Singleton (implícito)
+### Singleton (implícito) + pool de conexiones
 
-`ConexionBD.obtenerConexion()` mantiene una única instancia de la
-conexión JDBC durante la vida del proceso. No es un Singleton puro
-(la clase no bloquea instanciación) pero cumple el mismo objetivo.
+`ConexionBD.obtenerDataSource()` mantiene un único pool de conexiones
+HikariCP durante la vida del proceso (desde 1.8.0; antes era una
+`Connection` singleton). Cada DAO pide una conexión por operación con
+`try-with-resources` y el pool las reparte entre los hilos de JavaFX
+que corren en segundo plano.
 
 ## Flujo de datos típico — Compra de un boleto
 

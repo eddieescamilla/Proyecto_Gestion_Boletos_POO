@@ -8,23 +8,25 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sql.DataSource;
 import model.Evento;
 
 /** Persistencia de los eventos en PostgreSQL mediante el patrón DAO. */
 public class EventoPersistencia implements DAO<Evento> {
 
-  private Connection conexion;
+  private final DataSource dataSource;
 
-  /** Crea la persistencia usando la conexión compartida a la base de datos. */
+  /** Crea la persistencia usando el pool compartido de conexiones. */
   public EventoPersistencia() {
-    this.conexion = ConexionBD.obtenerConexion();
+    this.dataSource = ConexionBD.obtenerDataSource();
   }
 
   @Override
   public boolean guardar(Evento evento) {
     String sql = "INSERT INTO eventos (nombre_evento, categoria, fecha, lugar, " +
         "inventario_disponible, precio_boleto) VALUES (?, ?, ?, ?, ?, ?)";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, evento.getNombreEvento());
       statement.setString(2, evento.getCategoria());
       statement.setString(3, evento.getFecha().toString());
@@ -41,7 +43,8 @@ public class EventoPersistencia implements DAO<Evento> {
   @Override
   public Evento buscarPorId(String nombreEvento) {
     String sql = "SELECT * FROM eventos WHERE nombre_evento = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, nombreEvento);
       try (ResultSet resultado = statement.executeQuery()) {
         return resultado.next() ? mapearEvento(resultado) : null;
@@ -55,7 +58,8 @@ public class EventoPersistencia implements DAO<Evento> {
   public List<Evento> listarTodos() {
     List<Evento> eventos = new ArrayList<>();
     String sql = "SELECT * FROM eventos";
-    try (PreparedStatement statement = conexion.prepareStatement(sql);
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql);
         ResultSet resultado = statement.executeQuery()) {
       while (resultado.next()) {
         eventos.add(mapearEvento(resultado));
@@ -69,7 +73,8 @@ public class EventoPersistencia implements DAO<Evento> {
   @Override
   public boolean eliminar(String nombreEvento) {
     String sql = "DELETE FROM eventos WHERE nombre_evento = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, nombreEvento);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
@@ -86,7 +91,8 @@ public class EventoPersistencia implements DAO<Evento> {
    */
   public boolean actualizarInventario(Evento evento) {
     String sql = "UPDATE eventos SET inventario_disponible = ? WHERE nombre_evento = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setInt(1, evento.getInventarioDisponible());
       statement.setString(2, evento.getNombreEvento());
       return statement.executeUpdate() > 0;
@@ -109,7 +115,8 @@ public class EventoPersistencia implements DAO<Evento> {
   public boolean descontarInventarioAtomico(String nombreEvento, int cantidad) {
     String sql = "UPDATE eventos SET inventario_disponible = inventario_disponible - ? " +
         "WHERE nombre_evento = ? AND inventario_disponible >= ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setInt(1, cantidad);
       statement.setString(2, nombreEvento);
       statement.setInt(3, cantidad);
@@ -131,7 +138,8 @@ public class EventoPersistencia implements DAO<Evento> {
   public boolean actualizarEvento(Evento evento) {
     String sql = "UPDATE eventos SET categoria = ?, fecha = ?, lugar = ?, " +
         "inventario_disponible = ?, precio_boleto = ? WHERE nombre_evento = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, evento.getCategoria());
       statement.setString(2, evento.getFecha().toString());
       statement.setString(3, evento.getLugar());
