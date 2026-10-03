@@ -25,7 +25,7 @@ public class DescuentoPersistencia implements DAO<DescuentoConfig> {
             statement.setString(1, descuento.getCodigo());
             statement.setString(2, descuento.getTipo());
             statement.setDouble(3, descuento.getValor());
-            statement.setBoolean(4, descuento.isActivo());
+            statement.setInt(4, descuento.isActivo() ? 1 : 0);
             statement.executeUpdate();
             return true;
         } catch (SQLException e) {
@@ -35,7 +35,7 @@ public class DescuentoPersistencia implements DAO<DescuentoConfig> {
 
     @Override
     public DescuentoConfig buscarPorId(String codigo) {
-        String sql = "SELECT * FROM descuento_config WHERE codigo = ? AND activo = TRUE";
+        String sql = "SELECT * FROM descuento_config WHERE codigo = ? AND activo = 1";
         try (PreparedStatement statement = conexion.prepareStatement(sql)) {
             statement.setString(1, codigo);
             try (ResultSet resultado = statement.executeQuery()) {
@@ -77,7 +77,7 @@ public class DescuentoPersistencia implements DAO<DescuentoConfig> {
                 resultado.getString("codigo"),
                 resultado.getString("tipo"),
                 resultado.getDouble("valor"),
-                resultado.getBoolean("activo")
+                resultado.getInt("activo") == 1
         );
     }
 }
