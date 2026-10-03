@@ -2,10 +2,14 @@ package persistencia;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.PasswordHasher;
 
 /**
  * Administra el pool de conexiones a PostgreSQL y delega la creación de las
@@ -29,7 +33,8 @@ public class ConexionBD {
 
   /**
    * Devuelve el {@link DataSource} compartido. Lo crea la primera vez junto
-   * con la aplicación de migraciones.
+   * con la aplicación de migraciones y el sembrado del administrador por
+   * defecto.
    *
    * @return pool HikariCP listo para repartir conexiones
    * @throws RuntimeException si no se puede inicializar el pool o migrar la base
@@ -41,6 +46,7 @@ public class ConexionBD {
       log.info("Inicializando el pool de conexiones HikariCP");
       dataSource = construirPool();
       log.info("Pool listo (maximumPoolSize={})", dataSource.getMaximumPoolSize());
+      sembrarAdminSiCorresponde();
     }
     return dataSource;
   }
@@ -65,5 +71,34 @@ public class ConexionBD {
         .baselineVersion("0")
         .load()
         .migrate();
+  }
+
+  // Siembra el administrador por defecto solo si la clave se provee via la variable
+  // BOLETOS_ADMIN_PASSWORD (sistema o .env). La migracion V5 borra el admin plano que
+  // sembraba V2, para que una instalacion limpia no quede con credenciales conocidas.
+  private static void sembrarAdminSiCorresponde() {
+    String clavePlana = ConfigBD.claveAdmin();
+    if (clavePlana == null || clavePlana.isBlank()) {
+      log.info("BOLETOS_ADMIN_PASSWORD no definida; no se siembra el administrador por defecto.");
+      return;
+    }
+    String correo = ConfigBD.correoAdmin();
+    String sql = "INSERT INTO usuarios (correo, nombre, clave, rol, activo) "
+        + "VALUES (?, ?, ?, 'ADMINISTRADOR', 1) "
+        + "ON CONFLICT (correo) DO NOTHING";
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement ps = conexion.prepareStatement(sql)) {
+      ps.setString(1, correo);
+      ps.setString(2, "Administrador General");
+      ps.setString(3, PasswordHasher.hash(clavePlana));
+      int filas = ps.executeUpdate();
+      if (filas > 0) {
+        log.info("Administrador por defecto sembrado desde BOLETOS_ADMIN_PASSWORD ({}).", correo);
+      } else {
+        log.info("Administrador por defecto ya existia ({}); no se toca su clave.", correo);
+      }
+    } catch (SQLException e) {
+      log.warn("No se pudo sembrar el administrador por defecto", e);
+    }
   }
 }

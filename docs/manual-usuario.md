@@ -81,6 +81,10 @@ reales de la aplicación.
 
 Usuario de prueba: **`admin@boletos.com`** / **`admin123`**.
 
+> Este usuario solo se siembra automáticamente si `BOLETOS_ADMIN_PASSWORD`
+> está definida en tu `.env` (así viene en `.env.example`). En producción se
+> espera que el operador configure las credenciales reales.
+
 Después de iniciar sesión con una cuenta con rol `ADMINISTRADOR`, la
 aplicación abre el **Panel de Administración** con tres pestañas.
 
