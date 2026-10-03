@@ -48,7 +48,9 @@ que envían mensajes de forma paralela al iniciar el sistema. La entrada de
 datos por consola se centraliza en `ui.ConsolaUI`. Además, se agrega
 autenticación real (`model.GestorUsuarios`, `model.Usuario`,
 `model.Administrador`), se extiende `Evento` con categoría, fecha y lugar,
-y se registra cada compra exitosa mediante `model.RepositorioCompras`.
+y se registra cada compra exitosa (la primera versión usó
+`model.RepositorioCompras` como archivo plano, reemplazada en el quinto
+entregable por `persistencia.CompraPersistencia` sobre PostgreSQL).
 
 ## Quinto entregable
 
@@ -136,6 +138,25 @@ Todos los diagramas se encuentran en la carpeta [`diagramasUML/`](./diagramasUML
 - [Diagrama de secuencia](./diagramasUML/diagrama-secuencia.jpg)
 - [Diagrama de actividad](./diagramasUML/diagrama-actividad.jpg)
 
+## Documentación
+
+La documentación del proyecto vive en la carpeta [`docs/`](./docs):
+
+- [**Manual de usuario**](./docs/manual-usuario.md) — cómo usar la app
+  desde la GUI, paso a paso (cliente y administrador).
+- [**Manual técnico**](./docs/manual-tecnico.md) — vista de alto nivel
+  de la arquitectura, capas, patrones y flujo de datos.
+- [**Troubleshooting**](./docs/troubleshooting.md) — errores comunes
+  y cómo resolverlos.
+- [**Modelo entidad-relación**](./docs/entidad-relacion.md) — esquema
+  completo de la base de datos.
+- [**ADRs (decisiones arquitectónicas)**](./docs/adr/README.md) —
+  bitácora de por qué se tomó cada decisión estructural.
+- [**Empaquetado con jlink**](./docs/empaquetado-jlink.md) — guía para
+  generar la imagen de runtime.
+- [**Decisiones del Sprint 2**](./docs/decisiones-sprint7-8.md) —
+  planificación, roles y riesgos del sprint 2.
+
 ## Estructura del proyecto
 
 ```
@@ -161,7 +182,7 @@ Proyecto_Gestion_Boletos_POO/
         │   ├── model/             Usuario, Administrador, Comprador,
         │   │                      CompradorVIP, Evento, Compra,
         │   │                      GestorUsuarios, HistorialCompras,
-        │   │                      RepositorioCompras, SistemaGestionBoletos
+        │   │                      SistemaGestionBoletos
         │   ├── patrones/
         │   │   └── strategy/      Descuento, DescuentoFijo, DescuentoPorcentaje
         │   ├── persistencia/      ConexionBD, ConfigBD, UsuarioPersistencia,

@@ -10,6 +10,102 @@ Cambios en `develop` que aún no han sido promovidos a `main`.
 
 - (nada por ahora)
 
+## [1.7.0] - 2026-10-03
+
+Release de auditoría post-cierre. Consolida housekeeping, observabilidad,
+hardening de gobernanza, cobertura de capa DAO y migración del esquema a
+Flyway.
+
+### Agregado
+
+- **Manuales del repositorio** (PR #78) recuperados de `docs/documentacion-completa`
+  que no habían entrado al merge original: `docs/manual-usuario.md`,
+  `docs/manual-tecnico.md` y `docs/troubleshooting.md`, enlazados desde el
+  README en una sección nueva "Documentación".
+- **Gobernanza de seguridad** (PR #80): `SECURITY.md` con política de
+  reporte, `CODE_OF_CONDUCT.md` basado en Contributor Covenant 2.1,
+  `.github/dependabot.yml` para updates semanales de Gradle, GitHub
+  Actions y Docker, y `.github/workflows/codeql.yml` para análisis SAST
+  sobre Java/Kotlin en cada push, PR y una vez por semana.
+- **Pruebas de integración de la capa DAO** (PR #81): `UsuarioPersistenciaIT`,
+  `DescuentoPersistenciaIT` y `CompraPersistenciaIT`, gateadas por la
+  variable `BOLETOS_INTEGRATION_TESTS=1` que CI setea automáticamente.
+- **Observabilidad con SLF4J + Logback** (PR #64): `logback.xml` con
+  rotación diaria (14 días, 200 MB total). `ConexionBD` loguea los
+  eventos de conexión y migración.
+- **Capa de auditoría** (PR #64): nueva tabla `auditoria`,
+  `persistencia.AuditoriaPersistencia` y cableo en `PanelAdminController`
+  para dejar constancia de agregar/editar/eliminar eventos,
+  activar/desactivar usuarios y generar reportes, con el correo del
+  usuario en sesión como actor.
+- **Migración del esquema a Flyway** (PR #62): migraciones
+  `V1__esquema_inicial.sql`, `V2__datos_iniciales.sql`,
+  `V3__integridad_referencial_e_indices.sql` y
+  `V4__descuento_config_y_auditoria.sql`. `ConexionBD` ahora delega la
+  creación y poblamiento del esquema a Flyway con `baselineOnMigrate` para
+  no romper instalaciones ya existentes. V3 agrega llaves foráneas desde
+  `compras` hacia `usuarios` y `eventos`, e índices sobre las columnas
+  más consultadas.
+
+### Cambiado
+
+- `build.gradle`: `group` pasa de `org.example` a `sv.edu.uca.poo.boletos`
+  y `version` ahora sigue el `CHANGELOG` (`1.7.0`).
+
+### Eliminado
+
+- `model/RepositorioCompras` (PR #79). Era el escritor a archivo plano del
+  tercer entregable, reemplazado en el quinto por
+  `persistencia.CompraPersistencia`. Sin callers vivos desde entonces.
+
+### Mantenimiento
+
+- Normalización de estilo e indentación de `DescuentoPersistencia` y
+  `DescuentoConfig` a 2 espacios (PR #79), más Javadoc completo que
+  faltaba en el record de configuración.
+
+## [1.6.0] - 2026-10-03
+
+Cierre efectivo del Sprint 2. Consolida la lógica de negocio pendiente de
+HU-05 y HU-06, la configurabilidad de descuentos, el endurecimiento de
+seguridad del scan externo y los tres manuales que faltaban del repo.
+
+### Agregado
+
+- **Descuentos configurables desde base de datos** (PR #70). Nueva tabla
+  `descuento_config`, DAO `DescuentoPersistencia` y seed inicial con `DESC10`
+  (10%) y `DESC5` (5%). `Compra.aplicarDescuento(String)` ahora consulta la
+  base y arma la estrategia correspondiente en vez de un `switch` hardcodeado.
+- **Compra atómica** (PR #70). `EventoPersistencia.descontarInventarioAtomico`
+  reemplaza el check + update separados por un único
+  `UPDATE ... WHERE inventario_disponible >= ?`, evitando sobreventa bajo
+  compras concurrentes.
+- **Cableado real de HU-05 (compra) y HU-06 (historial)** (PR #71) sobre la
+  API nueva de #70. Nuevo `util.Sesion` que mantiene el usuario autenticado;
+  todo el I/O corre dentro de `javafx.concurrent.Task`.
+- **Hash BCrypt para contraseñas** (PR #75). Dependencia nueva
+  `at.favre.lib:bcrypt:0.10.2`, `util.PasswordHasher` y migración en caliente
+  de cualquier fila heredada en texto plano al primer login exitoso. El
+  admin se siembra ya hasheado.
+- **Correo normalizado y comparación exacta en historial** (PR #75). El
+  correo se guarda en minúsculas en registro y login, y
+  `HistorialCompras.buscarPorCliente` cambia `equalsIgnoreCase` por `equals`
+  exacto para cerrar la fuga por variante de capitalización.
+- **PostgreSQL publicado solo en loopback** (PR #75). `docker-compose.yml`
+  publica el puerto 5432 únicamente en `127.0.0.1`.
+- **Manuales nuevos** (recuperados de `docs/documentacion-completa`):
+  `docs/manual-usuario.md`, `docs/manual-tecnico.md` y
+  `docs/troubleshooting.md`, enlazados en el README.
+
+### Corregido
+
+- **Bug SQL en `DescuentoPersistencia.buscarPorId`** (PR #73). La columna
+  `descuento_config.activo` está definida como `INTEGER` en el schema pero
+  la consulta usaba `activo = TRUE`, lo que hacía que Postgres rechazara el
+  SELECT con `operator does not exist: integer = boolean`. El resultado era
+  que aplicar cualquier código válido desde la GUI lanzaba una
+  `RuntimeException`.
+
 ## [1.5.0] - 2026-09-29
 
 Segundo release del Sprint 2 (Semanas 7 y 8). Consolida el trabajo de
