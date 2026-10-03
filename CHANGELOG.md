@@ -10,6 +10,26 @@ Cambios en `develop` que aún no han sido promovidos a `main`.
 
 - (nada por ahora)
 
+## [1.7.1] - 2026-10-03
+
+Patch de pulido post-1.7.0. Cierra el seguimiento manual que había quedado
+abierto en code scanning y endurece la UI de login contra doble clic.
+
+### Corregido
+
+- **Doble clic en Login y Registro** (PR #97). Los handlers `iniciarSesion`
+  y `crearCuenta` ahora reciben el `ActionEvent` y deshabilitan el botón
+  mientras la tarea de fondo está en vuelo. Antes era posible disparar dos
+  intentos en paralelo mientras BCrypt verificaba, con el riesgo de dos
+  conexiones JDBC concurrentes y alertas duplicadas.
+- **Alertas abiertas de CodeQL** (PR #98). Elimina la variable local
+  `compraFinal` que nunca se leía en `CompraController`
+  (java/local-variable-is-never-read, CWE-561) y centraliza el parseo de
+  enteros de la consola en un helper que atrapa `NumberFormatException` y
+  devuelve `-1` en vez de propagar (java/uncaught-number-format-exception
+  sobre `ConsolaUI.leerOpcionInicio`, `leerOpcion` y `leerCantidadBoletos`,
+  CWE-248).
+
 ## [1.7.0] - 2026-10-03
 
 Release de auditoría post-cierre. Consolida housekeeping, observabilidad,
