@@ -10,6 +10,23 @@ Cambios en `develop` que aún no han sido promovidos a `main`.
 
 - (nada por ahora)
 
+## [1.7.2] - 2026-10-03
+
+Patch de dependencias. Primera cosecha de Dependabot después de activar la
+automatización en 1.7.0.
+
+### Cambiado
+
+- **Gradle wrapper** 9.6.0 → 9.8.0 (PR #87).
+- **PostgreSQL JDBC** 42.7.4 → 42.7.13 (PR #85).
+- **SLF4J API** 2.0.13 → 2.0.20 (PR #88).
+- **Flyway** 10.20.1 → 13.8.1 (PR #86, plugin + flyway-core +
+  flyway-database-postgresql). Salto mayor; los tests de integración contra
+  Postgres 16 pasaron sin cambios en las migraciones V1-V4.
+- **GitHub Actions**: `actions/checkout` v4 → v7 (PR #91),
+  `actions/setup-java` v4 → v6 (PR #92), `github/codeql-action` v3 → v4
+  (PR #90).
+
 ## [1.7.1] - 2026-10-03
 
 Patch de pulido post-1.7.0. Cierra el seguimiento manual que había quedado
