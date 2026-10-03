@@ -3,7 +3,9 @@ package controladores;
 import catalogo.RolUsuario;
 import hilos.EjecutorTareas;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import model.GestorUsuarios;
@@ -28,7 +30,7 @@ public class LoginController {
   private PasswordField txtClave;
 
   @FXML
-  private void iniciarSesion() {
+  private void iniciarSesion(ActionEvent evento) {
     String correo = txtCorreo.getText().trim();
     String clave = txtClave.getText();
     if (correo.isBlank() || clave.isBlank()) {
@@ -36,15 +38,26 @@ public class LoginController {
       return;
     }
 
+    // Deshabilitar el boton mientras la tarea esta en vuelo para que un segundo clic no
+    // dispare un segundo intento de login en paralelo.
+    Button boton = (Button) evento.getSource();
+    boton.setDisable(true);
+
     Task<Usuario> tarea = new Task<>() {
       @Override
       protected Usuario call() {
         return new GestorUsuarios().iniciarSesion(correo, clave);
       }
     };
-    tarea.setOnSucceeded(evento -> abrirPantallaSegunRol(tarea.getValue()));
-    tarea.setOnFailed(evento -> Alertas.mostrarError("Iniciar sesión",
-        "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución."));
+    tarea.setOnSucceeded(e -> {
+      boton.setDisable(false);
+      abrirPantallaSegunRol(tarea.getValue());
+    });
+    tarea.setOnFailed(e -> {
+      boton.setDisable(false);
+      Alertas.mostrarError("Iniciar sesión",
+          "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución.");
+    });
     EjecutorTareas.ejecutar(tarea);
   }
 
