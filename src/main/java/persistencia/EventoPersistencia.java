@@ -15,6 +15,7 @@ public class EventoPersistencia implements DAO<Evento> {
 
   private Connection conexion;
 
+  /** Crea la persistencia usando la conexión compartida a la base de datos. */
   public EventoPersistencia() {
     this.conexion = ConexionBD.obtenerConexion();
   }
@@ -76,6 +77,13 @@ public class EventoPersistencia implements DAO<Evento> {
     }
   }
 
+  /**
+   * Actualiza en la base de datos el inventario disponible de un evento.
+   *
+   * @param evento evento con el inventario actualizado
+   * @return {@code true} si se actualizó el evento
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   public boolean actualizarInventario(Evento evento) {
     String sql = "UPDATE eventos SET inventario_disponible = ? WHERE nombre_evento = ?";
     try (PreparedStatement statement = conexion.prepareStatement(sql)) {
@@ -87,6 +95,17 @@ public class EventoPersistencia implements DAO<Evento> {
     }
   }
 
+  /**
+   * Descuenta boletos del inventario en una sola operación, solo si hay suficientes.
+   *
+   * <p>La condición {@code inventario_disponible >= cantidad} va en la misma sentencia
+   * {@code UPDATE}, así que dos compras simultáneas no pueden vender más boletos de los que hay.
+   *
+   * @param nombreEvento nombre del evento
+   * @param cantidad cantidad de boletos a descontar
+   * @return {@code true} si había inventario suficiente y se descontó
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   public boolean descontarInventarioAtomico(String nombreEvento, int cantidad) {
     String sql = "UPDATE eventos SET inventario_disponible = inventario_disponible - ? " +
         "WHERE nombre_evento = ? AND inventario_disponible >= ?";
@@ -100,6 +119,15 @@ public class EventoPersistencia implements DAO<Evento> {
     }
   }
 
+  /**
+   * Actualiza la categoría, la fecha, el lugar, el inventario y el precio de un evento.
+   *
+   * <p>El nombre no se modifica, porque identifica al evento.
+   *
+   * @param evento evento con los datos actualizados
+   * @return {@code true} si se actualizó el evento
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
   public boolean actualizarEvento(Evento evento) {
     String sql = "UPDATE eventos SET categoria = ?, fecha = ?, lugar = ?, " +
         "inventario_disponible = ?, precio_boleto = ? WHERE nombre_evento = ?";
