@@ -78,8 +78,11 @@ public class HistorialCompras {
    */
   public List<RegistroCompra> buscarPorCliente(String correoCliente) {
     List<RegistroCompra> resultado = new ArrayList<>();
+    if (correoCliente == null) {
+      return resultado;
+    }
     for (RegistroCompra registro : compraPersistencia.listarTodos()) {
-      if (registro.getCorreoComprador().equalsIgnoreCase(correoCliente)) {
+      if (registro.getCorreoComprador().equals(correoCliente)) {
         resultado.add(registro);
       }
     }

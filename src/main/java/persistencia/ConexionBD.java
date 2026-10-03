@@ -2,9 +2,11 @@ package persistencia;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import util.PasswordHasher;
 
 /** Administra la conexión única a PostgreSQL y prepara las tablas y los datos iniciales. */
 public class ConexionBD {
@@ -66,9 +68,16 @@ public class ConexionBD {
           "SELECT COUNT(*) AS total FROM usuarios")) {
         resultadoUsuarios.next();
         if (resultadoUsuarios.getInt("total") == 0) {
-          statement.executeUpdate(
-              "INSERT INTO usuarios (correo, nombre, clave, rol, activo) VALUES " +
-                  "('admin@boletos.com', 'Administrador General', 'admin123', 'ADMINISTRADOR', 1)");
+          String sqlAdmin = "INSERT INTO usuarios (correo, nombre, clave, rol, activo) " +
+              "VALUES (?, ?, ?, ?, ?)";
+          try (PreparedStatement insertAdmin = conexion.prepareStatement(sqlAdmin)) {
+            insertAdmin.setString(1, "admin@boletos.com");
+            insertAdmin.setString(2, "Administrador General");
+            insertAdmin.setString(3, PasswordHasher.hash("admin123"));
+            insertAdmin.setString(4, "ADMINISTRADOR");
+            insertAdmin.setInt(5, 1);
+            insertAdmin.executeUpdate();
+          }
         }
       }
 

@@ -123,6 +123,29 @@ public class UsuarioPersistencia implements DAO<Usuario> {
     }
   }
 
+  /**
+   * Actualiza la contraseña almacenada de un usuario.
+   *
+   * <p>Se usa para reemplazar contraseñas heredadas en texto plano por su hash BCrypt en el
+   * primer inicio de sesión exitoso, y también será el hook para el flujo de recuperación
+   * de contraseña.
+   *
+   * @param correo correo del usuario
+   * @param clave nueva contraseña (ya hasheada)
+   * @return {@code true} si la fila se actualizó
+   * @throws RuntimeException si ocurre un error de base de datos
+   */
+  public boolean actualizarClave(String correo, String clave) {
+    String sql = "UPDATE usuarios SET clave = ? WHERE correo = ?";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setString(1, clave);
+      statement.setString(2, correo);
+      return statement.executeUpdate() > 0;
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo actualizar la contrasena del usuario.", e);
+    }
+  }
+
   private Usuario mapearUsuario(ResultSet resultado) throws SQLException {
     String nombre = resultado.getString("nombre");
     String correo = resultado.getString("correo");
