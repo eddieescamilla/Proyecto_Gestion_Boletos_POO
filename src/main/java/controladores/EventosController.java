@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import model.Evento;
@@ -23,6 +24,9 @@ import util.Sesion;
  * cerrar la sesión.
  */
 public class EventosController {
+
+  @FXML
+  private Label lblUsuario;
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -49,6 +53,7 @@ public class EventosController {
 
   @FXML
   private void initialize() {
+    lblUsuario.setText(Sesion.textoBienvenida());
     colNombre.setCellValueFactory(dato ->
         new SimpleStringProperty(dato.getValue().getNombreEvento()));
     colCategoria.setCellValueFactory(dato ->

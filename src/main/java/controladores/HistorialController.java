@@ -12,6 +12,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import model.Comprador;
@@ -24,6 +25,9 @@ import util.Sesion;
 
 /** Controlador de la pantalla de historial de compras ({@code Historial.fxml}). */
 public class HistorialController {
+
+  @FXML
+  private Label lblUsuario;
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -52,6 +56,7 @@ public class HistorialController {
 
   @FXML
   private void initialize() {
+    lblUsuario.setText(Sesion.textoBienvenida());
     historial = new HistorialCompras(new CompraPersistencia());
 
     colFecha.setCellValueFactory(dato ->
