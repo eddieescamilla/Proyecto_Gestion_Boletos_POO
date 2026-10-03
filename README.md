@@ -48,7 +48,9 @@ que envían mensajes de forma paralela al iniciar el sistema. La entrada de
 datos por consola se centraliza en `ui.ConsolaUI`. Además, se agrega
 autenticación real (`model.GestorUsuarios`, `model.Usuario`,
 `model.Administrador`), se extiende `Evento` con categoría, fecha y lugar,
-y se registra cada compra exitosa mediante `model.RepositorioCompras`.
+y se registra cada compra exitosa (la primera versión usó
+`model.RepositorioCompras` como archivo plano, reemplazada en el quinto
+entregable por `persistencia.CompraPersistencia` sobre PostgreSQL).
 
 ## Quinto entregable
 
@@ -161,7 +163,7 @@ Proyecto_Gestion_Boletos_POO/
         │   ├── model/             Usuario, Administrador, Comprador,
         │   │                      CompradorVIP, Evento, Compra,
         │   │                      GestorUsuarios, HistorialCompras,
-        │   │                      RepositorioCompras, SistemaGestionBoletos
+        │   │                      SistemaGestionBoletos
         │   ├── patrones/
         │   │   └── strategy/      Descuento, DescuentoFijo, DescuentoPorcentaje
         │   ├── persistencia/      ConexionBD, ConfigBD, UsuarioPersistencia,
