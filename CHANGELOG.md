@@ -10,6 +10,48 @@ Cambios en `develop` que aún no han sido promovidos a `main`.
 
 - (nada por ahora)
 
+## [1.6.0] - 2026-10-03
+
+Cierre efectivo del Sprint 2. Consolida la lógica de negocio pendiente de
+HU-05 y HU-06, la configurabilidad de descuentos, el endurecimiento de
+seguridad del scan externo y los tres manuales que faltaban del repo.
+
+### Agregado
+
+- **Descuentos configurables desde base de datos** (PR #70). Nueva tabla
+  `descuento_config`, DAO `DescuentoPersistencia` y seed inicial con `DESC10`
+  (10%) y `DESC5` (5%). `Compra.aplicarDescuento(String)` ahora consulta la
+  base y arma la estrategia correspondiente en vez de un `switch` hardcodeado.
+- **Compra atómica** (PR #70). `EventoPersistencia.descontarInventarioAtomico`
+  reemplaza el check + update separados por un único
+  `UPDATE ... WHERE inventario_disponible >= ?`, evitando sobreventa bajo
+  compras concurrentes.
+- **Cableado real de HU-05 (compra) y HU-06 (historial)** (PR #71) sobre la
+  API nueva de #70. Nuevo `util.Sesion` que mantiene el usuario autenticado;
+  todo el I/O corre dentro de `javafx.concurrent.Task`.
+- **Hash BCrypt para contraseñas** (PR #75). Dependencia nueva
+  `at.favre.lib:bcrypt:0.10.2`, `util.PasswordHasher` y migración en caliente
+  de cualquier fila heredada en texto plano al primer login exitoso. El
+  admin se siembra ya hasheado.
+- **Correo normalizado y comparación exacta en historial** (PR #75). El
+  correo se guarda en minúsculas en registro y login, y
+  `HistorialCompras.buscarPorCliente` cambia `equalsIgnoreCase` por `equals`
+  exacto para cerrar la fuga por variante de capitalización.
+- **PostgreSQL publicado solo en loopback** (PR #75). `docker-compose.yml`
+  publica el puerto 5432 únicamente en `127.0.0.1`.
+- **Manuales nuevos** (recuperados de `docs/documentacion-completa`):
+  `docs/manual-usuario.md`, `docs/manual-tecnico.md` y
+  `docs/troubleshooting.md`, enlazados en el README.
+
+### Corregido
+
+- **Bug SQL en `DescuentoPersistencia.buscarPorId`** (PR #73). La columna
+  `descuento_config.activo` está definida como `INTEGER` en el schema pero
+  la consulta usaba `activo = TRUE`, lo que hacía que Postgres rechazara el
+  SELECT con `operator does not exist: integer = boolean`. El resultado era
+  que aplicar cualquier código válido desde la GUI lanzaba una
+  `RuntimeException`.
+
 ## [1.5.0] - 2026-09-29
 
 Segundo release del Sprint 2 (Semanas 7 y 8). Consolida el trabajo de
