@@ -29,6 +29,7 @@ jobs:
       BOLETOS_DB_URL: jdbc:postgresql://localhost:5432/boletos
       BOLETOS_DB_USER: boletos
       BOLETOS_DB_PASSWORD: boletos
+      BOLETOS_INTEGRATION_TESTS: "1"
 
     steps:
       - name: Checkout
