@@ -1,6 +1,8 @@
 package controladores;
 
 import catalogo.RolUsuario;
+import hilos.EjecutorTareas;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -13,8 +15,9 @@ import util.Sesion;
 /**
  * Controlador de la pantalla de inicio de sesión ({@code Login.fxml}).
  *
- * <p>Valida las credenciales con {@link GestorUsuarios} y abre la pantalla que corresponde al
- * rol del usuario.
+ * <p>Valida las credenciales con {@link GestorUsuarios} en segundo plano, para que la interfaz
+ * no se bloquee mientras se consulta la base de datos y se verifica la contraseña, y abre la
+ * pantalla que corresponde al rol del usuario.
  */
 public class LoginController {
 
@@ -33,15 +36,19 @@ public class LoginController {
       return;
     }
 
-    Usuario usuario;
-    try {
-      usuario = new GestorUsuarios().iniciarSesion(correo, clave);
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Iniciar sesión",
-          "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución.");
-      return;
-    }
+    Task<Usuario> tarea = new Task<>() {
+      @Override
+      protected Usuario call() {
+        return new GestorUsuarios().iniciarSesion(correo, clave);
+      }
+    };
+    tarea.setOnSucceeded(evento -> abrirPantallaSegunRol(tarea.getValue()));
+    tarea.setOnFailed(evento -> Alertas.mostrarError("Iniciar sesión",
+        "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución."));
+    EjecutorTareas.ejecutar(tarea);
+  }
 
+  private void abrirPantallaSegunRol(Usuario usuario) {
     if (usuario == null) {
       Alertas.mostrarError("Iniciar sesión",
           "Correo o contraseña incorrectos, o la cuenta está inactiva.");

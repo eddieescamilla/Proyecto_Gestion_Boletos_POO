@@ -1,10 +1,14 @@
 package controladores;
 
+import hilos.EjecutorTareas;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import model.Evento;
@@ -20,6 +24,9 @@ import util.Sesion;
  * cerrar la sesión.
  */
 public class EventosController {
+
+  @FXML
+  private Label lblUsuario;
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -46,6 +53,7 @@ public class EventosController {
 
   @FXML
   private void initialize() {
+    lblUsuario.setText(Sesion.textoBienvenida());
     colNombre.setCellValueFactory(dato ->
         new SimpleStringProperty(dato.getValue().getNombreEvento()));
     colCategoria.setCellValueFactory(dato ->
@@ -63,12 +71,16 @@ public class EventosController {
   }
 
   private void cargarEventos() {
-    try {
-      tablaEventos.getItems().setAll(new SistemaGestionBoletos().getListaEventos());
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Eventos disponibles",
-          "No se pudieron cargar los eventos. Verifica que Docker esté en ejecución.");
-    }
+    Task<List<Evento>> tarea = new Task<>() {
+      @Override
+      protected List<Evento> call() {
+        return new SistemaGestionBoletos().getListaEventos();
+      }
+    };
+    tarea.setOnSucceeded(evento -> tablaEventos.getItems().setAll(tarea.getValue()));
+    tarea.setOnFailed(evento -> Alertas.mostrarError("Eventos disponibles",
+        "No se pudieron cargar los eventos. Verifica que Docker esté en ejecución."));
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML

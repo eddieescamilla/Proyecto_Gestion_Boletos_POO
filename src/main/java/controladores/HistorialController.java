@@ -1,5 +1,6 @@
 package controladores;
 
+import hilos.EjecutorTareas;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -11,6 +12,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import model.Comprador;
@@ -23,6 +25,9 @@ import util.Sesion;
 
 /** Controlador de la pantalla de historial de compras ({@code Historial.fxml}). */
 public class HistorialController {
+
+  @FXML
+  private Label lblUsuario;
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -51,6 +56,7 @@ public class HistorialController {
 
   @FXML
   private void initialize() {
+    lblUsuario.setText(Sesion.textoBienvenida());
     historial = new HistorialCompras(new CompraPersistencia());
 
     colFecha.setCellValueFactory(dato ->
@@ -79,7 +85,7 @@ public class HistorialController {
     tarea.setOnSucceeded(e -> mostrarEnTabla(tarea.getValue()));
     tarea.setOnFailed(e -> Alertas.mostrarError("Historial de compras",
         "No se pudo cargar el historial. Verifica que Docker esté en ejecución."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
@@ -108,7 +114,7 @@ public class HistorialController {
     tarea.setOnSucceeded(e -> mostrarEnTabla(tarea.getValue()));
     tarea.setOnFailed(e -> Alertas.mostrarError("Historial de compras",
         "No se pudo filtrar el historial. Verifica que Docker esté en ejecución."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   private void mostrarEnTabla(List<RegistroCompra> compras) {
@@ -126,11 +132,6 @@ public class HistorialController {
     return comprador;
   }
 
-  private void ejecutarEnSegundoPlano(Task<?> tarea) {
-    Thread hilo = new Thread(tarea);
-    hilo.setDaemon(true);
-    hilo.start();
-  }
 
   @FXML
   private void volver() {

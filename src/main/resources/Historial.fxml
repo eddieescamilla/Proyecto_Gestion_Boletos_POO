@@ -22,7 +22,7 @@
                  fill="WHITE"/>
         <Label text="Gestión de Boletos" styleClass="encabezado-titulo"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label text="Bienvenido"/>
+        <Label fx:id="lblUsuario" text="Bienvenido"/>
     </HBox>
 
     <!-- Contenido -->

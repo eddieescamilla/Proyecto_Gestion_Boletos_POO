@@ -1,6 +1,7 @@
 package controladores;
 
 import catalogo.TipoPago;
+import hilos.EjecutorTareas;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -27,6 +28,9 @@ import util.Sesion;
  * inventario de forma atómica y guardando el registro.
  */
 public class CompraController {
+
+  @FXML
+  private Label lblUsuario;
 
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -66,6 +70,7 @@ public class CompraController {
 
   @FXML
   private void initialize() {
+    lblUsuario.setText(Sesion.textoBienvenida());
     cmbMetodoPago.getItems().setAll(TipoPago.values());
     txtCantidad.textProperty().addListener((observable, anterior, nuevo) -> {
       compraEnCurso = null;
@@ -125,24 +130,26 @@ public class CompraController {
 
     Compra compra = new Compra(evento, comprador, cantidad);
     compra.calcularTotal();
-    boolean aplicado;
-    try {
-      aplicado = compra.aplicarDescuento(codigo);
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Código de descuento",
-          "No se pudo validar el código. Verifica que Docker esté en ejecución.");
-      return;
-    }
-    if (!aplicado) {
-      Alertas.mostrarAdvertencia("Código de descuento",
-          "El código no es válido o ya no está activo.");
-      return;
-    }
-
-    compraEnCurso = compra;
-    totalConDescuento = compra.getTotal();
-    lblTotal.setText(String.format(Locale.US, "Total: $%.2f (descuento aplicado)",
-        totalConDescuento));
+    Task<Boolean> tarea = new Task<>() {
+      @Override
+      protected Boolean call() {
+        return compra.aplicarDescuento(codigo);
+      }
+    };
+    tarea.setOnSucceeded(e -> {
+      if (!tarea.getValue()) {
+        Alertas.mostrarAdvertencia("Código de descuento",
+            "El código no es válido o ya no está activo.");
+        return;
+      }
+      compraEnCurso = compra;
+      totalConDescuento = compra.getTotal();
+      lblTotal.setText(String.format(Locale.US, "Total: $%.2f (descuento aplicado)",
+          totalConDescuento));
+    });
+    tarea.setOnFailed(e -> Alertas.mostrarError("Código de descuento",
+        "No se pudo validar el código. Verifica que Docker esté en ejecución."));
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
@@ -208,7 +215,7 @@ public class CompraController {
     tarea.setOnFailed(e -> Alertas.mostrarError("Comprar boletos",
         "No se pudo registrar la compra. Verifica que Docker esté en ejecución."));
 
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   private int leerCantidadValida() {
@@ -235,11 +242,6 @@ public class CompraController {
     return comprador;
   }
 
-  private void ejecutarEnSegundoPlano(Task<?> tarea) {
-    Thread hilo = new Thread(tarea);
-    hilo.setDaemon(true);
-    hilo.start();
-  }
 
   @FXML
   private void cancelar() {

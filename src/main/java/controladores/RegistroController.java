@@ -1,5 +1,7 @@
 package controladores;
 
+import hilos.EjecutorTareas;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -7,7 +9,12 @@ import model.GestorUsuarios;
 import util.Alertas;
 import util.Navegacion;
 
-/** Controlador de la pantalla de registro de usuarios ({@code Registro.fxml}). */
+/**
+ * Controlador de la pantalla de registro de usuarios ({@code Registro.fxml}).
+ *
+ * <p>El registro se guarda en segundo plano para que la interfaz no se bloquee mientras se
+ * cifra la contraseña y se consulta la base de datos.
+ */
 public class RegistroController {
 
   @FXML
@@ -33,23 +40,24 @@ public class RegistroController {
       return;
     }
 
-    boolean registrado;
-    try {
-      registrado = new GestorUsuarios().registrar(nombre, correo, clave);
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Crear cuenta",
-          "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución.");
-      return;
-    }
-
-    if (!registrado) {
-      Alertas.mostrarError("Crear cuenta", "Ya existe una cuenta con ese correo.");
-      return;
-    }
-
-    Alertas.mostrarInformacion("Crear cuenta",
-        "Tu cuenta se creó correctamente. Ya puedes iniciar sesión.");
-    volver();
+    Task<Boolean> tarea = new Task<>() {
+      @Override
+      protected Boolean call() {
+        return new GestorUsuarios().registrar(nombre, correo, clave);
+      }
+    };
+    tarea.setOnSucceeded(evento -> {
+      if (!tarea.getValue()) {
+        Alertas.mostrarError("Crear cuenta", "Ya existe una cuenta con ese correo.");
+        return;
+      }
+      Alertas.mostrarInformacion("Crear cuenta",
+          "Tu cuenta se creó correctamente. Ya puedes iniciar sesión.");
+      volver();
+    });
+    tarea.setOnFailed(evento -> Alertas.mostrarError("Crear cuenta",
+        "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución."));
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
