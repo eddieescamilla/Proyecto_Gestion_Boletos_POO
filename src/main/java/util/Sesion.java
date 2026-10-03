@@ -38,4 +38,13 @@ public final class Sesion {
   public static void cerrar() {
     usuarioActual = null;
   }
+
+  /**
+   * Devuelve el saludo que se muestra en el encabezado de las pantallas del cliente.
+   *
+   * @return "Bienvenido, " seguido del nombre del usuario, o solo "Bienvenido" si no hay sesión
+   */
+  public static String textoBienvenida() {
+    return usuarioActual == null ? "Bienvenido" : "Bienvenido, " + usuarioActual.getNombre();
+  }
 }
