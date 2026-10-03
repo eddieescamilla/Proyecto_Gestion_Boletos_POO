@@ -1,6 +1,7 @@
 package controladores;
 
 import catalogo.Categoria;
+import hilos.EjecutorTareas;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -126,12 +127,6 @@ public class PanelAdminController {
         : "anonimo";
   }
 
-  /** Corre una tarea en un hilo demonio para no bloquear la interfaz. */
-  private void ejecutarEnSegundoPlano(Task<?> tarea) {
-    Thread hilo = new Thread(tarea);
-    hilo.setDaemon(true);
-    hilo.start();
-  }
 
   private void cargarEventos() {
     Task<List<Evento>> tarea = new Task<>() {
@@ -143,7 +138,7 @@ public class PanelAdminController {
     tarea.setOnSucceeded(evento -> tablaEventos.getItems().setAll(tarea.getValue()));
     tarea.setOnFailed(evento -> Alertas.mostrarError("Panel de administración",
         "No se pudieron cargar los eventos. Verifica que Docker esté en ejecución."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   private void cargarUsuarios() {
@@ -156,7 +151,7 @@ public class PanelAdminController {
     tarea.setOnSucceeded(evento -> tablaUsuarios.getItems().setAll(tarea.getValue()));
     tarea.setOnFailed(evento -> Alertas.mostrarError("Panel de administración",
         "No se pudieron cargar los usuarios. Verifica que Docker esté en ejecución."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   private void configurarTablaEventos() {
@@ -290,7 +285,7 @@ public class PanelAdminController {
     });
     tarea.setOnFailed(evento ->
         Alertas.mostrarError("Agregar evento", "No se pudo guardar el evento."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
@@ -332,7 +327,7 @@ public class PanelAdminController {
     });
     tarea.setOnFailed(evento ->
         Alertas.mostrarError("Editar evento", "No se pudo actualizar el evento."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
@@ -364,7 +359,7 @@ public class PanelAdminController {
     });
     tarea.setOnFailed(evento ->
         Alertas.mostrarError("Eliminar evento", "No se pudo eliminar el evento."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
@@ -408,7 +403,7 @@ public class PanelAdminController {
     });
     tarea.setOnFailed(evento ->
         Alertas.mostrarError(accion, "No se pudo actualizar el estado del usuario."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
@@ -435,7 +430,7 @@ public class PanelAdminController {
     });
     tarea.setOnFailed(evento ->
         Alertas.mostrarError("Generar reporte", "No se pudo generar el reporte."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML

@@ -1,5 +1,6 @@
 package controladores;
 
+import hilos.EjecutorTareas;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -79,7 +80,7 @@ public class HistorialController {
     tarea.setOnSucceeded(e -> mostrarEnTabla(tarea.getValue()));
     tarea.setOnFailed(e -> Alertas.mostrarError("Historial de compras",
         "No se pudo cargar el historial. Verifica que Docker esté en ejecución."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
@@ -108,7 +109,7 @@ public class HistorialController {
     tarea.setOnSucceeded(e -> mostrarEnTabla(tarea.getValue()));
     tarea.setOnFailed(e -> Alertas.mostrarError("Historial de compras",
         "No se pudo filtrar el historial. Verifica que Docker esté en ejecución."));
-    ejecutarEnSegundoPlano(tarea);
+    EjecutorTareas.ejecutar(tarea);
   }
 
   private void mostrarEnTabla(List<RegistroCompra> compras) {
@@ -126,11 +127,6 @@ public class HistorialController {
     return comprador;
   }
 
-  private void ejecutarEnSegundoPlano(Task<?> tarea) {
-    Thread hilo = new Thread(tarea);
-    hilo.setDaemon(true);
-    hilo.start();
-  }
 
   @FXML
   private void volver() {
