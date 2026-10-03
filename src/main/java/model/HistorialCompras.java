@@ -70,13 +70,43 @@ public class HistorialCompras {
     return resultado.toString();
   }
 
-  private List<RegistroCompra> buscarPorCliente(String correoCliente) {
+  /**
+   * Devuelve las compras de un cliente como lista de registros.
+   *
+   * @param correoCliente correo del cliente
+   * @return lista con las compras del cliente, posiblemente vacía
+   */
+  public List<RegistroCompra> buscarPorCliente(String correoCliente) {
     List<RegistroCompra> resultado = new ArrayList<>();
+    if (correoCliente == null) {
+      return resultado;
+    }
     for (RegistroCompra registro : compraPersistencia.listarTodos()) {
-      if (registro.getCorreoComprador().equalsIgnoreCase(correoCliente)) {
+      if (registro.getCorreoComprador().equals(correoCliente)) {
         resultado.add(registro);
       }
     }
     return resultado;
+  }
+
+  /**
+   * Devuelve las compras de un cliente dentro de un rango de fechas como lista de
+   * registros.
+   *
+   * @param correoCliente correo del cliente
+   * @param desde fecha inicial del rango, incluida
+   * @param hasta fecha final del rango, incluida
+   * @return lista filtrada por rango, posiblemente vacía
+   */
+  public List<RegistroCompra> buscarPorClienteEnRango(
+      String correoCliente, LocalDate desde, LocalDate hasta) {
+    List<RegistroCompra> enRango = new ArrayList<>();
+    for (RegistroCompra registro : buscarPorCliente(correoCliente)) {
+      LocalDate fecha = registro.getFecha();
+      if (!fecha.isBefore(desde) && !fecha.isAfter(hasta)) {
+        enRango.add(registro);
+      }
+    }
+    return enRango;
   }
 }

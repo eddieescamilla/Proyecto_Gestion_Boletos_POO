@@ -2,11 +2,13 @@ package persistencia;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.PasswordHasher;
 
 /** Administra la conexión única a PostgreSQL y prepara las tablas y los datos iniciales. */
 public class ConexionBD {
@@ -15,14 +17,6 @@ public class ConexionBD {
 
   private static Connection conexion;
 
-  /**
-   * Devuelve la conexión a la base de datos, creándola la primera vez.
-   *
-   * <p>Al crearla, también crea las tablas y carga los datos iniciales si no existen.
-   *
-   * @return la conexión a la base de datos
-   * @throws RuntimeException si no se puede conectar a la base de datos
-   */
   public static Connection obtenerConexion() {
     if (conexion == null) {
       try {
@@ -66,6 +60,12 @@ public class ConexionBD {
           "total REAL NOT NULL, " +
           "fecha TEXT NOT NULL)");
 
+      statement.execute("CREATE TABLE IF NOT EXISTS descuento_config (" +
+          "codigo TEXT PRIMARY KEY, " +
+          "tipo TEXT NOT NULL, " +
+          "valor REAL NOT NULL, " +
+          "activo INTEGER NOT NULL)");
+
       statement.execute("CREATE TABLE IF NOT EXISTS auditoria (" +
           "id SERIAL PRIMARY KEY, " +
           "fecha_hora TEXT NOT NULL, " +
@@ -84,9 +84,16 @@ public class ConexionBD {
           "SELECT COUNT(*) AS total FROM usuarios")) {
         resultadoUsuarios.next();
         if (resultadoUsuarios.getInt("total") == 0) {
-          statement.executeUpdate(
-              "INSERT INTO usuarios (correo, nombre, clave, rol, activo) VALUES " +
-                  "('admin@boletos.com', 'Administrador General', 'admin123', 'ADMINISTRADOR', 1)");
+          String sqlAdmin = "INSERT INTO usuarios (correo, nombre, clave, rol, activo) " +
+              "VALUES (?, ?, ?, ?, ?)";
+          try (PreparedStatement insertAdmin = conexion.prepareStatement(sqlAdmin)) {
+            insertAdmin.setString(1, "admin@boletos.com");
+            insertAdmin.setString(2, "Administrador General");
+            insertAdmin.setString(3, PasswordHasher.hash("admin123"));
+            insertAdmin.setString(4, "ADMINISTRADOR");
+            insertAdmin.setInt(5, 1);
+            insertAdmin.executeUpdate();
+          }
         }
       }
 
@@ -100,6 +107,17 @@ public class ConexionBD {
               "('Festival de Jazz', 'Musica', '2026-10-15', 'Teatro Nacional', 26, 40.0)");
           statement.executeUpdate("INSERT INTO eventos VALUES " +
               "('Obra de Teatro', 'Teatro', '2026-12-05', 'Teatro Presidente', 15, 15.5)");
+        }
+      }
+
+      try (ResultSet resultadoDescuentos = statement.executeQuery(
+          "SELECT COUNT(*) AS total FROM descuento_config")) {
+        resultadoDescuentos.next();
+        if (resultadoDescuentos.getInt("total") == 0) {
+          statement.executeUpdate("INSERT INTO descuento_config (codigo, tipo, valor, activo) VALUES " +
+              "('DESC10', 'PORCENTAJE', 10.0, 1)");
+          statement.executeUpdate("INSERT INTO descuento_config (codigo, tipo, valor, activo) VALUES " +
+              "('DESC5', 'PORCENTAJE', 5.0, 1)");
         }
       }
     }

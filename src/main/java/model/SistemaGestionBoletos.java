@@ -61,6 +61,17 @@ public class SistemaGestionBoletos {
   }
 
   /**
+   * Descuenta el inventario de un evento de forma atómica, evitando sobreventa.
+   *
+   * @param nombreEvento nombre del evento al que se le descuenta inventario
+   * @param cantidad cantidad de boletos a descontar
+   * @return {@code true} si había inventario suficiente y se descontó
+   */
+  public boolean descontarInventarioAtomico(String nombreEvento, int cantidad) {
+    return persistencia.descontarInventarioAtomico(nombreEvento, cantidad);
+  }
+
+  /**
    * Devuelve todos los eventos de la base de datos.
    *
    * @return la lista de eventos

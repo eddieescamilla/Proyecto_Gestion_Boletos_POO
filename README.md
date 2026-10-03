@@ -1,10 +1,18 @@
 # Sistema de Gestión de Venta de Boletos para Eventos
 
+[![build (main)](https://github.com/eddieescamilla/Proyecto_Gestion_Boletos_POO/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/eddieescamilla/Proyecto_Gestion_Boletos_POO/actions/workflows/build.yml?query=branch%3Amain)
+[![build (develop)](https://github.com/eddieescamilla/Proyecto_Gestion_Boletos_POO/actions/workflows/build.yml/badge.svg?branch=develop)](https://github.com/eddieescamilla/Proyecto_Gestion_Boletos_POO/actions/workflows/build.yml?query=branch%3Adevelop)
+[![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net/)
+[![JavaFX 21](https://img.shields.io/badge/JavaFX-21-blue.svg)](https://openjfx.io/)
+[![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
+
 ## Integrantes
 
-- José Edgardo Rosales Escamilla [00129426]
-- Xiomara Molina Amaya [00220826]
-- Daniel Eduardo García Hernández [00253220]
+| Nombre | Carnet | GitHub |
+|---|---|---|
+| José Edgardo Rosales Escamilla | 00129426 | [@eddieescamilla](https://github.com/eddieescamilla) |
+| Xiomara Molina Amaya | 00220826 | [@Xio7w7](https://github.com/Xio7w7) |
+| Daniel Eduardo García Hernández | 00253220 | [@TheSulak3](https://github.com/TheSulak3) |
 
 ## Descripción
 

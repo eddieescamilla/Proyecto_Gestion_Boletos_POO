@@ -1,21 +1,30 @@
 package controladores;
 
 import catalogo.TipoPago;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import model.Compra;
+import model.Comprador;
 import model.Evento;
+import persistencia.CompraPersistencia;
+import persistencia.EventoPersistencia;
+import persistencia.RegistroCompra;
 import util.Alertas;
 import util.Navegacion;
+import util.Sesion;
 
 /**
  * Controlador de la pantalla de compra de boletos ({@code Compra.fxml}).
  *
  * <p>Muestra el detalle del evento seleccionado, calcula el total según la cantidad de
- * boletos y valida los datos de la compra.
+ * boletos y registra la compra consultando descuentos configurables, descontando
+ * inventario de forma atómica y guardando el registro.
  */
 public class CompraController {
 
@@ -52,11 +61,19 @@ public class CompraController {
   private ComboBox<TipoPago> cmbMetodoPago;
 
   private Evento evento;
+  private Compra compraEnCurso;
+  private double totalConDescuento;
 
   @FXML
   private void initialize() {
     cmbMetodoPago.getItems().setAll(TipoPago.values());
-    txtCantidad.textProperty().addListener((observable, anterior, nuevo) -> actualizarTotal());
+    txtCantidad.textProperty().addListener((observable, anterior, nuevo) -> {
+      compraEnCurso = null;
+      actualizarTotal();
+    });
+    txtCodigoDescuento.textProperty().addListener((observable, anterior, nuevo) -> {
+      compraEnCurso = null;
+    });
   }
 
   /**
@@ -83,34 +100,55 @@ public class CompraController {
           total = cantidad * evento.getPrecioBoleto();
         }
       } catch (NumberFormatException e) {
-        // Si la cantidad no es un numero, el total se queda en 0
+        total = 0;
       }
     }
+    totalConDescuento = total;
     lblTotal.setText(String.format(Locale.US, "Total: $%.2f", total));
   }
 
   @FXML
   private void aplicarDescuento() {
-    if (txtCodigoDescuento.getText().isBlank()) {
+    String codigo = txtCodigoDescuento.getText();
+    if (codigo == null || codigo.isBlank()) {
       Alertas.mostrarAdvertencia("Código de descuento", "Ingresa un código de descuento.");
       return;
     }
-    // Semana 8: validar el codigo con el patron Strategy de descuentos
-    Alertas.mostrarInformacion("Código de descuento",
-        "La validación del código se conectará en la semana 8.");
+    Comprador comprador = compradorEnSesion();
+    if (comprador == null) {
+      return;
+    }
+    int cantidad = leerCantidadValida();
+    if (cantidad <= 0) {
+      return;
+    }
+
+    Compra compra = new Compra(evento, comprador, cantidad);
+    compra.calcularTotal();
+    boolean aplicado;
+    try {
+      aplicado = compra.aplicarDescuento(codigo);
+    } catch (RuntimeException e) {
+      Alertas.mostrarError("Código de descuento",
+          "No se pudo validar el código. Verifica que Docker esté en ejecución.");
+      return;
+    }
+    if (!aplicado) {
+      Alertas.mostrarAdvertencia("Código de descuento",
+          "El código no es válido o ya no está activo.");
+      return;
+    }
+
+    compraEnCurso = compra;
+    totalConDescuento = compra.getTotal();
+    lblTotal.setText(String.format(Locale.US, "Total: $%.2f (descuento aplicado)",
+        totalConDescuento));
   }
 
   @FXML
   private void confirmarCompra() {
-    int cantidad;
-    try {
-      cantidad = Integer.parseInt(txtCantidad.getText().trim());
-    } catch (NumberFormatException e) {
-      Alertas.mostrarAdvertencia("Comprar boletos", "Ingresa una cantidad válida.");
-      return;
-    }
+    int cantidad = leerCantidadValida();
     if (cantidad <= 0) {
-      Alertas.mostrarAdvertencia("Comprar boletos", "La cantidad debe ser mayor a cero.");
       return;
     }
     if (evento != null && !evento.verificarDisponibilidad(cantidad)) {
@@ -121,8 +159,86 @@ public class CompraController {
       Alertas.mostrarAdvertencia("Comprar boletos", "Selecciona un método de pago.");
       return;
     }
-    // Semana 8: registrar la compra con Compra y CompraPersistencia
-    Alertas.mostrarInformacion("Comprar boletos", "La compra se registrará en la semana 8.");
+    Comprador comprador = compradorEnSesion();
+    if (comprador == null) {
+      return;
+    }
+
+    Compra compra = compraEnCurso;
+    if (compra == null || compra.getCantidadBoletos() != cantidad) {
+      compra = new Compra(evento, comprador, cantidad);
+      compra.calcularTotal();
+    }
+    final Compra compraFinal = compra;
+    final double totalFinal = compra.getTotal();
+
+    Task<Boolean> tarea = new Task<>() {
+      @Override
+      protected Boolean call() {
+        EventoPersistencia eventoPersistencia = new EventoPersistencia();
+        boolean descontado = eventoPersistencia.descontarInventarioAtomico(
+            evento.getNombreEvento(), cantidad);
+        if (!descontado) {
+          return false;
+        }
+        RegistroCompra registro = new RegistroCompra(
+            comprador.getCorreo(),
+            evento.getNombreEvento(),
+            evento.getCategoria(),
+            cantidad,
+            totalFinal,
+            LocalDate.now());
+        new CompraPersistencia().guardar(registro);
+        return true;
+      }
+    };
+
+    tarea.setOnSucceeded(e -> {
+      if (Boolean.TRUE.equals(tarea.getValue())) {
+        Alertas.mostrarInformacion("Comprar boletos",
+            String.format(Locale.US,
+                "Compra registrada correctamente por $%.2f.", totalFinal));
+        compraEnCurso = null;
+        Navegacion.cambiarPantalla("Eventos.fxml", "Eventos Disponibles");
+      } else {
+        Alertas.mostrarError("Comprar boletos",
+            "No hay inventario suficiente para completar la compra.");
+      }
+    });
+    tarea.setOnFailed(e -> Alertas.mostrarError("Comprar boletos",
+        "No se pudo registrar la compra. Verifica que Docker esté en ejecución."));
+
+    ejecutarEnSegundoPlano(tarea);
+  }
+
+  private int leerCantidadValida() {
+    try {
+      int cantidad = Integer.parseInt(txtCantidad.getText().trim());
+      if (cantidad <= 0) {
+        Alertas.mostrarAdvertencia("Comprar boletos", "La cantidad debe ser mayor a cero.");
+        return 0;
+      }
+      return cantidad;
+    } catch (NumberFormatException e) {
+      Alertas.mostrarAdvertencia("Comprar boletos", "Ingresa una cantidad válida.");
+      return 0;
+    }
+  }
+
+  private Comprador compradorEnSesion() {
+    if (!(Sesion.getUsuarioActual() instanceof Comprador comprador)) {
+      Alertas.mostrarError("Comprar boletos",
+          "No hay una sesión de cliente activa. Vuelve a iniciar sesión.");
+      Navegacion.cambiarPantalla("Login.fxml", "Iniciar Sesión");
+      return null;
+    }
+    return comprador;
+  }
+
+  private void ejecutarEnSegundoPlano(Task<?> tarea) {
+    Thread hilo = new Thread(tarea);
+    hilo.setDaemon(true);
+    hilo.start();
   }
 
   @FXML

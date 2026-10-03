@@ -1,0 +1,59 @@
+name: build
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: boletos
+          POSTGRES_PASSWORD: boletos
+          POSTGRES_DB: boletos
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U boletos"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      BOLETOS_DB_URL: jdbc:postgresql://localhost:5432/boletos
+      BOLETOS_DB_USER: boletos
+      BOLETOS_DB_PASSWORD: boletos
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Dar permiso de ejecucion al wrapper
+        run: chmod +x ./gradlew
+
+      - name: Compilar
+        run: ./gradlew --no-daemon compileJava
+
+      - name: Correr pruebas
+        run: ./gradlew --no-daemon test
+
+      - name: Subir reporte de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-pruebas
+          path: build/reports/tests/test
+          if-no-files-found: ignore

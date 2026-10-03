@@ -15,18 +15,22 @@ public class Evento {
   /**
    * Crea un evento con su inventario de boletos.
    *
+   * <p>La validación de fecha futura se hace en la GUI al crear el evento; el constructor
+   * acepta cualquier fecha para que se puedan rehidratar eventos históricos desde la base
+   * de datos.
+   *
    * @param nombreEvento nombre del evento, que funciona como identificador
    * @param categoria categoría del evento
-   * @param fecha fecha del evento, que no puede ser pasada
+   * @param fecha fecha del evento
    * @param lugar lugar donde se realiza
    * @param inventarioDisponible cantidad de boletos disponibles
    * @param precioBoleto precio de cada boleto
-   * @throws IllegalArgumentException si la fecha es nula o pasada
+   * @throws IllegalArgumentException si la fecha es nula
    */
   public Evento(String nombreEvento, String categoria, LocalDate fecha, String lugar,
       int inventarioDisponible, double precioBoleto) {
-    if (fecha == null || fecha.isBefore(LocalDate.now())) {
-      throw new IllegalArgumentException("La fecha del evento no puede ser pasada.");
+    if (fecha == null) {
+      throw new IllegalArgumentException("La fecha del evento no puede ser nula.");
     }
     this.nombreEvento = nombreEvento;
     this.categoria = categoria;
