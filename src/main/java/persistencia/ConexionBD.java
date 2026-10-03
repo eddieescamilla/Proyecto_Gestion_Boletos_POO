@@ -4,12 +4,16 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import org.flywaydb.core.Flyway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Administra la conexión única a PostgreSQL y delega la creación de las
  * tablas y los datos iniciales a Flyway.
  */
 public class ConexionBD {
+
+  private static final Logger log = LoggerFactory.getLogger(ConexionBD.class);
 
   private static Connection conexion;
 
@@ -25,10 +29,14 @@ public class ConexionBD {
   public static Connection obtenerConexion() {
     if (conexion == null) {
       try {
+        log.info("Aplicando migraciones de base de datos");
         aplicarMigraciones();
+        log.info("Abriendo conexion a la base de datos");
         conexion = DriverManager.getConnection(
             ConfigBD.url(), ConfigBD.usuario(), ConfigBD.clave());
+        log.info("Conexion lista y esquema aplicado");
       } catch (SQLException e) {
+        log.error("Fallo la conexion a la base de datos", e);
         throw new RuntimeException("No se pudo conectar a la base de datos.", e);
       }
     }

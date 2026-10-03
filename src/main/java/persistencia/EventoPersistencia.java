@@ -15,18 +15,10 @@ public class EventoPersistencia implements DAO<Evento> {
 
   private Connection conexion;
 
-  /** Crea la persistencia usando la conexión compartida a la base de datos. */
   public EventoPersistencia() {
     this.conexion = ConexionBD.obtenerConexion();
   }
 
-  /**
-   * Guarda un evento nuevo.
-   *
-   * @param evento evento a guardar
-   * @return {@code true} si se guardó correctamente
-   * @throws RuntimeException si ocurre un error de base de datos
-   */
   @Override
   public boolean guardar(Evento evento) {
     String sql = "INSERT INTO eventos (nombre_evento, categoria, fecha, lugar, " +
@@ -45,13 +37,6 @@ public class EventoPersistencia implements DAO<Evento> {
     }
   }
 
-  /**
-   * Busca un evento por su nombre.
-   *
-   * @param nombreEvento nombre del evento
-   * @return el evento encontrado, o {@code null} si no existe
-   * @throws RuntimeException si ocurre un error de base de datos
-   */
   @Override
   public Evento buscarPorId(String nombreEvento) {
     String sql = "SELECT * FROM eventos WHERE nombre_evento = ?";
@@ -65,12 +50,6 @@ public class EventoPersistencia implements DAO<Evento> {
     }
   }
 
-  /**
-   * Devuelve todos los eventos registrados.
-   *
-   * @return lista con todos los eventos
-   * @throws RuntimeException si ocurre un error de base de datos
-   */
   @Override
   public List<Evento> listarTodos() {
     List<Evento> eventos = new ArrayList<>();
@@ -86,13 +65,6 @@ public class EventoPersistencia implements DAO<Evento> {
     return eventos;
   }
 
-  /**
-   * Elimina un evento por su nombre.
-   *
-   * @param nombreEvento nombre del evento
-   * @return {@code true} si se eliminó el evento
-   * @throws RuntimeException si ocurre un error de base de datos
-   */
   @Override
   public boolean eliminar(String nombreEvento) {
     String sql = "DELETE FROM eventos WHERE nombre_evento = ?";
@@ -104,13 +76,6 @@ public class EventoPersistencia implements DAO<Evento> {
     }
   }
 
-  /**
-   * Actualiza en la base de datos el inventario disponible de un evento.
-   *
-   * @param evento evento con el inventario actualizado
-   * @return {@code true} si se actualizó el evento
-   * @throws RuntimeException si ocurre un error de base de datos
-   */
   public boolean actualizarInventario(Evento evento) {
     String sql = "UPDATE eventos SET inventario_disponible = ? WHERE nombre_evento = ?";
     try (PreparedStatement statement = conexion.prepareStatement(sql)) {
@@ -119,6 +84,35 @@ public class EventoPersistencia implements DAO<Evento> {
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
       throw new RuntimeException("No se pudo actualizar el inventario.", e);
+    }
+  }
+
+  public boolean descontarInventarioAtomico(String nombreEvento, int cantidad) {
+    String sql = "UPDATE eventos SET inventario_disponible = inventario_disponible - ? " +
+        "WHERE nombre_evento = ? AND inventario_disponible >= ?";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setInt(1, cantidad);
+      statement.setString(2, nombreEvento);
+      statement.setInt(3, cantidad);
+      return statement.executeUpdate() > 0;
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo descontar el inventario.", e);
+    }
+  }
+
+  public boolean actualizarEvento(Evento evento) {
+    String sql = "UPDATE eventos SET categoria = ?, fecha = ?, lugar = ?, " +
+        "inventario_disponible = ?, precio_boleto = ? WHERE nombre_evento = ?";
+    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+      statement.setString(1, evento.getCategoria());
+      statement.setString(2, evento.getFecha().toString());
+      statement.setString(3, evento.getLugar());
+      statement.setInt(4, evento.getInventarioDisponible());
+      statement.setDouble(5, evento.getPrecioBoleto());
+      statement.setString(6, evento.getNombreEvento());
+      return statement.executeUpdate() > 0;
+    } catch (SQLException e) {
+      throw new RuntimeException("No se pudo actualizar el evento.", e);
     }
   }
 

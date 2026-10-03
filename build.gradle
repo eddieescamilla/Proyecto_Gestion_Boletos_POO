@@ -4,8 +4,8 @@ plugins {
     id 'org.flywaydb.flyway' version '10.20.1'
 }
 
-group = 'org.example'
-version = '1.0-SNAPSHOT'
+group = 'sv.edu.uca.poo.boletos'
+version = '1.6.0'
 
 repositories {
     mavenCentral()
@@ -31,6 +31,10 @@ dependencies {
     }
 
     implementation 'org.postgresql:postgresql:42.7.4'
+    implementation 'at.favre.lib:bcrypt:0.10.2'
+
+    implementation 'org.slf4j:slf4j-api:2.0.13'
+    implementation 'ch.qos.logback:logback-classic:1.5.6'
 
     implementation 'org.flywaydb:flyway-core:10.20.1'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql:10.20.1'
