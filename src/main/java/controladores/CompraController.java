@@ -176,7 +176,6 @@ public class CompraController {
       compra = new Compra(evento, comprador, cantidad);
       compra.calcularTotal();
     }
-    final Compra compraFinal = compra;
     final double totalFinal = compra.getTotal();
 
     Task<Boolean> tarea = new Task<>() {
