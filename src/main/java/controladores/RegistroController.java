@@ -2,7 +2,9 @@ package controladores;
 
 import hilos.EjecutorTareas;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import model.GestorUsuarios;
@@ -27,7 +29,7 @@ public class RegistroController {
   private PasswordField txtClave;
 
   @FXML
-  private void crearCuenta() {
+  private void crearCuenta(ActionEvent evento) {
     String nombre = txtNombre.getText().trim();
     String correo = txtCorreo.getText().trim();
     String clave = txtClave.getText();
@@ -40,13 +42,19 @@ public class RegistroController {
       return;
     }
 
+    // Deshabilitar el boton mientras la tarea esta en vuelo para que un segundo clic no
+    // dispare un segundo intento de registro en paralelo.
+    Button boton = (Button) evento.getSource();
+    boton.setDisable(true);
+
     Task<Boolean> tarea = new Task<>() {
       @Override
       protected Boolean call() {
         return new GestorUsuarios().registrar(nombre, correo, clave);
       }
     };
-    tarea.setOnSucceeded(evento -> {
+    tarea.setOnSucceeded(e -> {
+      boton.setDisable(false);
       if (!tarea.getValue()) {
         Alertas.mostrarError("Crear cuenta", "Ya existe una cuenta con ese correo.");
         return;
@@ -55,8 +63,11 @@ public class RegistroController {
           "Tu cuenta se creó correctamente. Ya puedes iniciar sesión.");
       volver();
     });
-    tarea.setOnFailed(evento -> Alertas.mostrarError("Crear cuenta",
-        "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución."));
+    tarea.setOnFailed(e -> {
+      boton.setDisable(false);
+      Alertas.mostrarError("Crear cuenta",
+          "No se pudo conectar con la base de datos. Verifica que Docker esté en ejecución.");
+    });
     EjecutorTareas.ejecutar(tarea);
   }
 
