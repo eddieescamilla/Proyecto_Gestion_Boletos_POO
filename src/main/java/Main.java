@@ -62,10 +62,8 @@ public class Main {
 
   private static Usuario autenticar(ConsolaUI consola, GestorUsuarios gestorUsuarios) {
     while (true) {
-      int opcion;
-      try {
-        opcion = consola.leerOpcionInicio();
-      } catch (NumberFormatException e) {
+      int opcion = consola.leerOpcionInicio();
+      if (opcion == -1) {
         System.out.println("Opcion invalida.");
         continue;
       }
@@ -101,10 +99,8 @@ public class Main {
     System.out.println("\nBienvenido, " + admin.getNombre() + " (Administrador).");
     System.out.println("1. Generar reporte de ventas por categoria");
     System.out.println("2. Salir");
-    int opcion;
-    try {
-      opcion = consola.leerOpcion();
-    } catch (NumberFormatException e) {
+    int opcion = consola.leerOpcion();
+    if (opcion == -1) {
       System.out.println("Opcion invalida. Cerrando el sistema.");
       return;
     }

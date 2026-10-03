@@ -19,15 +19,14 @@ public class ConsolaUI {
   /**
    * Muestra el menú de inicio y lee la opción elegida.
    *
-   * @return la opción elegida
-   * @throws NumberFormatException si el texto ingresado no es un número
+   * @return la opción elegida, o {@code -1} si el texto ingresado no es un número
    */
   public int leerOpcionInicio() {
     System.out.println("\n=== Bienvenido ===");
     System.out.println("1. Iniciar sesion");
     System.out.println("2. Registrarme");
     System.out.print("Opcion: ");
-    return Integer.parseInt(scanner.nextLine());
+    return leerEntero();
   }
 
   /**
@@ -63,23 +62,32 @@ public class ConsolaUI {
   /**
    * Lee una opción numérica de un menú.
    *
-   * @return la opción elegida
-   * @throws NumberFormatException si el texto ingresado no es un número
+   * @return la opción elegida, o {@code -1} si el texto ingresado no es un número
    */
   public int leerOpcion() {
     System.out.print("Opcion: ");
-    return Integer.parseInt(scanner.nextLine());
+    return leerEntero();
   }
 
   /**
    * Lee la cantidad de boletos a comprar.
    *
-   * @return la cantidad ingresada
-   * @throws NumberFormatException si el texto ingresado no es un número
+   * @return la cantidad ingresada, o {@code -1} si el texto ingresado no es un número
    */
   public int leerCantidadBoletos() {
     System.out.print("Ingrese la cantidad de boletos a comprar: ");
-    return Integer.parseInt(scanner.nextLine());
+    return leerEntero();
+  }
+
+  // Centraliza la lectura de un entero desde el scanner. Devuelve -1 cuando el texto no es
+  // un numero, en vez de propagar NumberFormatException, para que los menus de consola puedan
+  // chequear el valor y mostrar un mensaje de error controlado.
+  private int leerEntero() {
+    try {
+      return Integer.parseInt(scanner.nextLine().trim());
+    } catch (NumberFormatException e) {
+      return -1;
+    }
   }
 
   /**
