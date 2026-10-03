@@ -8,16 +8,17 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sql.DataSource;
 import model.Compra;
 
 /** Persistencia de las compras en PostgreSQL mediante el patrón DAO. */
 public class CompraPersistencia implements DAO<RegistroCompra> {
 
-  private Connection conexion;
+  private final DataSource dataSource;
 
-  /** Crea la persistencia usando la conexión compartida a la base de datos. */
+  /** Crea la persistencia usando el pool compartido de conexiones. */
   public CompraPersistencia() {
-    this.conexion = ConexionBD.obtenerConexion();
+    this.dataSource = ConexionBD.obtenerDataSource();
   }
 
   /**
@@ -49,7 +50,8 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
   public boolean guardar(RegistroCompra registro) {
     String sql = "INSERT INTO compras (correo_comprador, nombre_evento, categoria_evento, " +
         "cantidad_boletos, total, fecha) VALUES (?, ?, ?, ?, ?, ?)";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, registro.getCorreoComprador());
       statement.setString(2, registro.getNombreEvento());
       statement.setString(3, registro.getCategoriaEvento());
@@ -73,7 +75,8 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
   @Override
   public RegistroCompra buscarPorId(String id) {
     String sql = "SELECT * FROM compras WHERE id = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setInt(1, Integer.parseInt(id));
       try (ResultSet resultado = statement.executeQuery()) {
         return resultado.next() ? mapearRegistro(resultado) : null;
@@ -93,7 +96,8 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
   public List<RegistroCompra> listarTodos() {
     List<RegistroCompra> registros = new ArrayList<>();
     String sql = "SELECT * FROM compras";
-    try (PreparedStatement statement = conexion.prepareStatement(sql);
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql);
         ResultSet resultado = statement.executeQuery()) {
       while (resultado.next()) {
         registros.add(mapearRegistro(resultado));
@@ -114,7 +118,8 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
   @Override
   public boolean eliminar(String id) {
     String sql = "DELETE FROM compras WHERE id = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setInt(1, Integer.parseInt(id));
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
@@ -135,7 +140,8 @@ public class CompraPersistencia implements DAO<RegistroCompra> {
     }
     String sql = "SELECT SUM(cantidad_boletos) AS total_boletos, SUM(total) AS ingreso_total " +
         "FROM compras WHERE categoria_evento = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, categoria);
       try (ResultSet resultado = statement.executeQuery()) {
         if (resultado.next() && resultado.getInt("total_boletos") > 0) {

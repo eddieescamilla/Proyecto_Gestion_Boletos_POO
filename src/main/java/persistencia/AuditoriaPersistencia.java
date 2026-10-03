@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +22,11 @@ public class AuditoriaPersistencia {
 
   private static final Logger log = LoggerFactory.getLogger(AuditoriaPersistencia.class);
 
-  private final Connection conexion;
+  private final DataSource dataSource;
 
-  /** Crea la persistencia usando la conexión compartida a la base de datos. */
+  /** Crea la persistencia usando el pool compartido de conexiones. */
   public AuditoriaPersistencia() {
-    this.conexion = ConexionBD.obtenerConexion();
+    this.dataSource = ConexionBD.obtenerDataSource();
   }
 
   /**
@@ -44,7 +45,8 @@ public class AuditoriaPersistencia {
       String referencia, String detalle) {
     String sql = "INSERT INTO auditoria (fecha_hora, actor, accion, entidad, referencia, detalle)"
         + " VALUES (?, ?, ?, ?, ?, ?)";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, LocalDateTime.now().toString());
       statement.setString(2, actor);
       statement.setString(3, accion);
@@ -72,7 +74,8 @@ public class AuditoriaPersistencia {
     List<EntradaAuditoria> entradas = new ArrayList<>();
     String sql = "SELECT fecha_hora, actor, accion, entidad, referencia, detalle "
         + "FROM auditoria ORDER BY id DESC LIMIT ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setInt(1, limite);
       try (ResultSet resultado = statement.executeQuery()) {
         while (resultado.next()) {
