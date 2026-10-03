@@ -158,15 +158,21 @@ public class Main {
 
         boolean exito = compra.confirmarPago();
         if (exito) {
-          sistema.actualizarInventario(evento);
-          compraPersistencia.guardarCompra(compra);
-          System.out.println("\n=== Confirmacion de Compra ===");
-          System.out.println("Comprador          : " + comprador.getNombre());
-          System.out.println("Evento             : " + evento.getNombreEvento());
-          System.out.println("Boletos comprados  : " + compra.getCantidadBoletos());
-          System.out.println("Total pagado       : $" + compra.getTotal());
-          System.out.println(
-              "Inventario restante: " + evento.getInventarioDisponible() + " boletos");
+          boolean inventarioDescontado = sistema.descontarInventarioAtomico(
+              evento.getNombreEvento(), compra.getCantidadBoletos());
+          if (!inventarioDescontado) {
+            System.out.println(
+                "No se pudo completar la compra: el inventario cambio justo antes de confirmar.");
+          } else {
+            compraPersistencia.guardarCompra(compra);
+            System.out.println("\n=== Confirmacion de Compra ===");
+            System.out.println("Comprador          : " + comprador.getNombre());
+            System.out.println("Evento             : " + evento.getNombreEvento());
+            System.out.println("Boletos comprados  : " + compra.getCantidadBoletos());
+            System.out.println("Total pagado       : $" + compra.getTotal());
+            System.out.println(
+                "Inventario restante: " + evento.getInventarioDisponible() + " boletos");
+          }
         } else {
           System.out.println("No se pudo completar la compra: stock insuficiente.");
         }

@@ -11,6 +11,7 @@ import model.Evento;
 import model.SistemaGestionBoletos;
 import util.Alertas;
 import util.Navegacion;
+import util.Sesion;
 
 /**
  * Controlador de la pantalla de eventos disponibles ({@code Eventos.fxml}).
@@ -89,6 +90,7 @@ public class EventosController {
   @FXML
   private void cerrarSesion() {
     if (Alertas.confirmar("Cerrar sesión", "¿Deseas cerrar tu sesión?")) {
+      Sesion.cerrar();
       Navegacion.cambiarPantalla("Login.fxml", "Iniciar Sesión");
     }
   }
