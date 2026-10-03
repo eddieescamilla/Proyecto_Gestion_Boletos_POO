@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.sql.DataSource;
 import model.Administrador;
 import model.Comprador;
 import model.Usuario;
@@ -15,11 +16,11 @@ import model.Usuario;
 /** Persistencia de los usuarios en PostgreSQL mediante el patrón DAO. */
 public class UsuarioPersistencia implements DAO<Usuario> {
 
-  private Connection conexion;
+  private final DataSource dataSource;
 
-  /** Crea la persistencia usando la conexión compartida a la base de datos. */
+  /** Crea la persistencia usando el pool compartido de conexiones. */
   public UsuarioPersistencia() {
-    this.conexion = ConexionBD.obtenerConexion();
+    this.dataSource = ConexionBD.obtenerDataSource();
   }
 
   /**
@@ -32,7 +33,8 @@ public class UsuarioPersistencia implements DAO<Usuario> {
   @Override
   public boolean guardar(Usuario usuario) {
     String sql = "INSERT INTO usuarios (correo, nombre, clave, rol, activo) VALUES (?, ?, ?, ?, ?)";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, usuario.getCorreo());
       statement.setString(2, usuario.getNombre());
       statement.setString(3, usuario.getClave());
@@ -55,7 +57,8 @@ public class UsuarioPersistencia implements DAO<Usuario> {
   @Override
   public Usuario buscarPorId(String correo) {
     String sql = "SELECT * FROM usuarios WHERE correo = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, correo);
       try (ResultSet resultado = statement.executeQuery()) {
         return resultado.next() ? mapearUsuario(resultado) : null;
@@ -75,7 +78,8 @@ public class UsuarioPersistencia implements DAO<Usuario> {
   public List<Usuario> listarTodos() {
     List<Usuario> usuarios = new ArrayList<>();
     String sql = "SELECT * FROM usuarios";
-    try (PreparedStatement statement = conexion.prepareStatement(sql);
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql);
         ResultSet resultado = statement.executeQuery()) {
       while (resultado.next()) {
         usuarios.add(mapearUsuario(resultado));
@@ -96,7 +100,8 @@ public class UsuarioPersistencia implements DAO<Usuario> {
   @Override
   public boolean eliminar(String correo) {
     String sql = "DELETE FROM usuarios WHERE correo = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, correo);
       return statement.executeUpdate() > 0;
     } catch (SQLException e) {
@@ -114,7 +119,8 @@ public class UsuarioPersistencia implements DAO<Usuario> {
    */
   public boolean actualizarEstado(String correo, boolean activo) {
     String sql = "UPDATE usuarios SET activo = ? WHERE correo = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setInt(1, activo ? 1 : 0);
       statement.setString(2, correo);
       return statement.executeUpdate() > 0;
@@ -137,7 +143,8 @@ public class UsuarioPersistencia implements DAO<Usuario> {
    */
   public boolean actualizarClave(String correo, String clave) {
     String sql = "UPDATE usuarios SET clave = ? WHERE correo = ?";
-    try (PreparedStatement statement = conexion.prepareStatement(sql)) {
+    try (Connection conexion = dataSource.getConnection();
+        PreparedStatement statement = conexion.prepareStatement(sql)) {
       statement.setString(1, clave);
       statement.setString(2, correo);
       return statement.executeUpdate() > 0;
