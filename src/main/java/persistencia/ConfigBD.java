@@ -54,6 +54,30 @@ public class ConfigBD {
     return leer("BOLETOS_DB_PASSWORD", CLAVE_POR_DEFECTO);
   }
 
+  /**
+   * Devuelve la clave en claro del administrador por defecto si está configurada.
+   *
+   * <p>Se usa como semilla una sola vez al arrancar la app: si una fila
+   * administradora ya existe no se toca. Devuelve {@code null} para apagar
+   * el sembrado automático en producción.
+   *
+   * @return la clave leída de {@code BOLETOS_ADMIN_PASSWORD}, o {@code null} si no está definida
+   */
+  public static String claveAdmin() {
+    String valor = leer("BOLETOS_ADMIN_PASSWORD", null);
+    return (valor == null || valor.isBlank()) ? null : valor;
+  }
+
+  /**
+   * Devuelve el correo del administrador por defecto a sembrar.
+   *
+   * @return el correo leído de {@code BOLETOS_ADMIN_EMAIL} o {@code admin@boletos.com}
+   */
+  public static String correoAdmin() {
+    return leer("BOLETOS_ADMIN_EMAIL", "admin@boletos.com");
+  }
+
+  // porDefecto puede ser null para indicar "sin fallback" (p. ej. clave de admin).
   private static String leer(String clave, String porDefecto) {
     String desdeArchivo = archivoEnv.get(clave);
     if (desdeArchivo != null && !desdeArchivo.isBlank()) {
