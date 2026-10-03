@@ -10,6 +10,60 @@ Cambios en `develop` que aún no han sido promovidos a `main`.
 
 - (nada por ahora)
 
+## [1.7.0] - 2026-10-03
+
+Release de auditoría post-cierre. Consolida housekeeping, observabilidad,
+hardening de gobernanza, cobertura de capa DAO y migración del esquema a
+Flyway.
+
+### Agregado
+
+- **Manuales del repositorio** (PR #78) recuperados de `docs/documentacion-completa`
+  que no habían entrado al merge original: `docs/manual-usuario.md`,
+  `docs/manual-tecnico.md` y `docs/troubleshooting.md`, enlazados desde el
+  README en una sección nueva "Documentación".
+- **Gobernanza de seguridad** (PR #80): `SECURITY.md` con política de
+  reporte, `CODE_OF_CONDUCT.md` basado en Contributor Covenant 2.1,
+  `.github/dependabot.yml` para updates semanales de Gradle, GitHub
+  Actions y Docker, y `.github/workflows/codeql.yml` para análisis SAST
+  sobre Java/Kotlin en cada push, PR y una vez por semana.
+- **Pruebas de integración de la capa DAO** (PR #81): `UsuarioPersistenciaIT`,
+  `DescuentoPersistenciaIT` y `CompraPersistenciaIT`, gateadas por la
+  variable `BOLETOS_INTEGRATION_TESTS=1` que CI setea automáticamente.
+- **Observabilidad con SLF4J + Logback** (PR #64): `logback.xml` con
+  rotación diaria (14 días, 200 MB total). `ConexionBD` loguea los
+  eventos de conexión y migración.
+- **Capa de auditoría** (PR #64): nueva tabla `auditoria`,
+  `persistencia.AuditoriaPersistencia` y cableo en `PanelAdminController`
+  para dejar constancia de agregar/editar/eliminar eventos,
+  activar/desactivar usuarios y generar reportes, con el correo del
+  usuario en sesión como actor.
+- **Migración del esquema a Flyway** (PR #62): migraciones
+  `V1__esquema_inicial.sql`, `V2__datos_iniciales.sql`,
+  `V3__integridad_referencial_e_indices.sql` y
+  `V4__descuento_config_y_auditoria.sql`. `ConexionBD` ahora delega la
+  creación y poblamiento del esquema a Flyway con `baselineOnMigrate` para
+  no romper instalaciones ya existentes. V3 agrega llaves foráneas desde
+  `compras` hacia `usuarios` y `eventos`, e índices sobre las columnas
+  más consultadas.
+
+### Cambiado
+
+- `build.gradle`: `group` pasa de `org.example` a `sv.edu.uca.poo.boletos`
+  y `version` ahora sigue el `CHANGELOG` (`1.7.0`).
+
+### Eliminado
+
+- `model/RepositorioCompras` (PR #79). Era el escritor a archivo plano del
+  tercer entregable, reemplazado en el quinto por
+  `persistencia.CompraPersistencia`. Sin callers vivos desde entonces.
+
+### Mantenimiento
+
+- Normalización de estilo e indentación de `DescuentoPersistencia` y
+  `DescuentoConfig` a 2 espacios (PR #79), más Javadoc completo que
+  faltaba en el record de configuración.
+
 ## [1.6.0] - 2026-10-03
 
 Cierre efectivo del Sprint 2. Consolida la lógica de negocio pendiente de
