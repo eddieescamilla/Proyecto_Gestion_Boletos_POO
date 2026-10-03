@@ -10,6 +10,65 @@ Cambios en `develop` que aún no han sido promovidos a `main`.
 
 - (nada por ahora)
 
+## [1.8.0] - 2026-10-03
+
+Release grande post-cierre que resuelve los findings pendientes de la
+auditoría red/blue team, cosecha la primera tanda de bumps de Dependabot
+e inaugura features del backlog (recuperación de clave MVP y data layer
+de asientos numerados).
+
+### Agregado
+
+- **Pantalla de recuperación de clave** (PR #106, cierra #56). Nuevo botón
+  **¿Olvidaste tu clave?** en `Login.fxml` que abre `RecuperarClave.fxml`;
+  el usuario ingresa correo + clave nueva + confirmación, el sistema
+  verifica que la cuenta exista y actualiza la clave con BCrypt. Es un
+  MVP: la UI advierte que no hay verificación por correo/SMS; el flujo
+  completo con token y envío out-of-band queda para una iteración futura.
+- **Data layer para asientos numerados** (PR #107, fase 1 de #60).
+  Migración `V6__asientos.sql` con tabla `asientos` (PK compuesta
+  `nombre_evento + numero_asiento`, FK con cascada e índice sobre
+  disponibles), seed vía `generate_series` que pre-popula cada evento con
+  tantos asientos como `inventario_disponible`. Nuevos
+  `model.Asiento` y `persistencia.AsientoPersistencia` con
+  `listarPorEvento`, `listarDisponibles`, `marcarVendido` (UPDATE
+  condicional atómico) y `contarDisponibles`. Falta la UI (seat picker)
+  y el cableo del flujo de compra para la siguiente fase.
+- **Gate del admin seed** (PR #104, cierra #77 y el finding P2 CWE-798
+  del scan externo). Nueva migración `V5__gate_admin_seed.sql` que borra
+  el admin plano que sembraba V2 cuando sigue teniendo la clave
+  original. `ConexionBD.sembrarAdminSiCorresponde()` corre al terminar
+  Flyway y, si la variable `BOLETOS_ADMIN_PASSWORD` está definida (en el
+  sistema o en el `.env`), hace un `INSERT ... ON CONFLICT DO NOTHING`
+  con BCrypt del hash; si no está definida, no siembra. Correo
+  configurable con `BOLETOS_ADMIN_EMAIL` (default `admin@boletos.com`).
+  Nota en el README y en `docs/manual-usuario.md`.
+
+### Cambiado
+
+- **Pool de conexiones HikariCP** (PR #105, cierra #99 y el finding medio
+  CWE-662 improper synchronization). Antes todos los DAO compartían una
+  única `Connection` estática expuesta por
+  `ConexionBD.obtenerConexion()`. Con las pantallas corriendo en
+  segundo plano con `javafx.concurrent.Task`, dos tareas concurrentes
+  podían terminar ejecutando SQL sobre la misma `Connection`, que la
+  spec de JDBC no garantiza thread-safe. `ConexionBD` ahora expone un
+  `javax.sql.DataSource` (HikariCP, `maximumPoolSize=10`,
+  `minimumIdle=2`, `connectionTimeout=10s`); cada DAO
+  (`UsuarioPersistencia`, `EventoPersistencia`, `CompraPersistencia`,
+  `DescuentoPersistencia`, `AuditoriaPersistencia`,
+  `AsientoPersistencia`) pide una conexión por operación en
+  `try-with-resources`.
+- **Gradle wrapper** 9.6.0 → 9.8.0 (PR #87).
+- **PostgreSQL JDBC** 42.7.4 → 42.7.13 (PR #85).
+- **SLF4J API** 2.0.13 → 2.0.20 (PR #88).
+- **Flyway** 10.20.1 → 13.8.1 (PR #86, plugin + flyway-core +
+  flyway-database-postgresql). Salto mayor; los tests de integración
+  contra Postgres 16 pasaron sin cambios en las migraciones V1-V4.
+- **GitHub Actions**: `actions/checkout` v4 → v7 (PR #91),
+  `actions/setup-java` v4 → v6 (PR #92), `github/codeql-action` v3 →
+  v4 (PR #90).
+
 ## [1.7.1] - 2026-10-03
 
 Patch de pulido post-1.7.0. Cierra el seguimiento manual que había quedado
