@@ -1,6 +1,7 @@
 package model;
 
 import persistencia.UsuarioPersistencia;
+import util.PasswordHasher;
 
 /** Gestiona el registro y el inicio de sesión de los usuarios. */
 public class GestorUsuarios {
@@ -26,6 +27,8 @@ public class GestorUsuarios {
   /**
    * Registra un nuevo usuario con rol de cliente.
    *
+   * <p>La contraseña se almacena hasheada con BCrypt; nunca se guarda en texto plano.
+   *
    * @param nombre nombre completo
    * @param correo correo electrónico, que no debe estar registrado
    * @param clave contraseña
@@ -37,15 +40,20 @@ public class GestorUsuarios {
         || clave == null || clave.isBlank()) {
       return false;
     }
-    if (persistencia.buscarPorId(correo) != null) {
+    String correoNormalizado = correo.trim().toLowerCase(java.util.Locale.ROOT);
+    if (persistencia.buscarPorId(correoNormalizado) != null) {
       return false;
     }
-    Comprador nuevo = new Comprador(nombre, correo, clave);
+    Comprador nuevo = new Comprador(nombre, correoNormalizado, PasswordHasher.hash(clave));
     return persistencia.guardar(nuevo);
   }
 
   /**
    * Valida las credenciales de un usuario.
+   *
+   * <p>La contraseña almacenada se espera hasheada con BCrypt. Si por compatibilidad con
+   * cuentas creadas antes del hashing la fila trae texto plano, se compara con {@code
+   * equals} y, si coincide, se rehashea y actualiza en la base de forma transparente.
    *
    * @param correo correo electrónico
    * @param clave contraseña
@@ -53,10 +61,22 @@ public class GestorUsuarios {
    *     cuenta está inactiva
    */
   public Usuario iniciarSesion(String correo, String clave) {
-    Usuario usuario = persistencia.buscarPorId(correo);
-    if (usuario == null || !usuario.isActivo() || !usuario.getClave().equals(clave)) {
+    if (correo == null || clave == null) {
       return null;
     }
-    return usuario;
+    String correoNormalizado = correo.trim().toLowerCase(java.util.Locale.ROOT);
+    Usuario usuario = persistencia.buscarPorId(correoNormalizado);
+    if (usuario == null || !usuario.isActivo()) {
+      return null;
+    }
+    String almacenada = usuario.getClave();
+    if (PasswordHasher.esHashBCrypt(almacenada)) {
+      return PasswordHasher.verificar(clave, almacenada) ? usuario : null;
+    }
+    if (almacenada.equals(clave)) {
+      persistencia.actualizarClave(correoNormalizado, PasswordHasher.hash(clave));
+      return usuario;
+    }
+    return null;
   }
 }
