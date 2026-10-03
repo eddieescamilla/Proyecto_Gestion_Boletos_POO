@@ -125,7 +125,14 @@ public class CompraController {
 
     Compra compra = new Compra(evento, comprador, cantidad);
     compra.calcularTotal();
-    boolean aplicado = compra.aplicarDescuento(codigo);
+    boolean aplicado;
+    try {
+      aplicado = compra.aplicarDescuento(codigo);
+    } catch (RuntimeException e) {
+      Alertas.mostrarError("Código de descuento",
+          "No se pudo validar el código. Verifica que Docker esté en ejecución.");
+      return;
+    }
     if (!aplicado) {
       Alertas.mostrarAdvertencia("Código de descuento",
           "El código no es válido o ya no está activo.");
