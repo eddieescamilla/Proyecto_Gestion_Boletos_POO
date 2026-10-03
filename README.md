@@ -98,49 +98,83 @@ fecha) y HU-09 (reporte de ventas por categoría de evento).
 | Historial de compras | `Historial.fxml` + `HistorialController` | `historial.jpg` |
 | Panel de administración (Eventos, Usuarios y Reportes) | `PanelAdmin.fxml` + `PanelAdminController` | `panel-admin.jpg`, `panel-admin-usuarios.jpg`, `panel-admin-reportes.jpg` |
 
-## Séptimo y octavo entregable
+## Entregable final
 
-**Consolidación del Sprint 2 (Semanas 7 y 8): historias HU-05 a HU-09 integradas y control de versiones con Gitflow.**
+**Entregable final: Persistencia de datos en la GUI de JavaFX con soporte de hilos.**
 
-- **Historias completadas** (planificación en [`docs/decisiones-sprint7-8.md`](./docs/decisiones-sprint7-8.md)):
-  - **HU-05** (Xiomara): selección de método de pago desde la pantalla de compra.
+- **Persistencia desde la GUI con el patrón DAO:** los controladores FXML
+  guardan, consultan, actualizan y eliminan datos a través de las clases del
+  paquete `persistencia`, que implementan la interfaz `dao.DAO<T>`:
+  - **Eventos** (Panel de Administración): agregar, editar, eliminar y listar.
+  - **Usuarios:** registro, inicio de sesión, activar y desactivar cuentas.
+  - **Compras:** confirmar la compra (con descuento y descuento del
+    inventario), historial del cliente con filtro por fechas y reporte de
+    ventas por categoría.
+- **Soporte de hilos con `Task`:** toda operación que accede a la base de
+  datos desde la GUI corre en segundo plano dentro de un `javafx.concurrent.Task`,
+  ejecutado por la clase `hilos.EjecutorTareas` en un hilo demonio. La interfaz
+  nunca se bloquea: el resultado se muestra en `setOnSucceeded` y los errores
+  en `setOnFailed`, que JavaFX ejecuta en su propio hilo, así que la pantalla
+  se actualiza de forma segura. Esto incluye el inicio de sesión y el registro
+  de usuarios (que además cifran la contraseña con BCrypt), la carga de
+  eventos, la compra, el historial y todas las acciones del panel.
+- **Controladores y FXML actualizados:** los encabezados muestran el usuario
+  en sesión (`util.Sesion`), el administrador no puede desactivar su propia
+  cuenta y no se pueden eliminar eventos que ya tienen compras.
+- **Documentación Javadoc:** generada con `./gradlew javadoc` en la carpeta
+  [`documentacion/`](./documentacion) (abrir `documentacion/index.html`).
+- **Diagramas UML actualizados** en [`diagramasUML/`](./diagramasUML): clases
+  de la interfaz gráfica e hilos, y clases de la persistencia con DAO.
+- **Base de datos:** el esquema se crea y actualiza con migraciones de Flyway
+  (`src/main/resources/db/migration`), con integridad referencial entre
+  compras, usuarios y eventos.
+
+> **Sobre la persistencia en archivos planos:** desde el quinto entregable el
+> equipo decidió guardar los datos en PostgreSQL (Docker) en lugar de archivos
+> de texto, para tener integridad referencial, consultas por fecha y categoría,
+> y descuento de inventario sin sobreventa. Gracias al patrón DAO, los
+> controladores no dependen del tipo de almacenamiento: cambiarlo solo implica
+> otra implementación de `DAO<T>`.
+
+## Sprint 2 (semanas 7 y 8): historias de usuario y Gitflow
+
+- **Historias completadas** (planificación en
+  [`docs/decisiones-sprint7-8.md`](./docs/decisiones-sprint7-8.md)):
+  - **HU-05** (Xiomara): selección de método de pago en la pantalla de compra.
   - **HU-06** (Xiomara): historial de compras del cliente con filtro por fechas.
-  - **HU-07** (Daniel): gestión de eventos (crear, editar y eliminar) desde el
-    panel de administración, con validaciones y confirmación.
-  - **HU-08** (Daniel): gestión de usuarios (listado, activar y desactivar)
-    desde el panel de administración.
-  - **HU-09** (Daniel): reporte de ventas por categoría de evento, generado
-    desde `CompraPersistencia.generarReportePorCategoria(...)` y accesible
-    desde la pestaña de reportes del panel de administración.
-- **Gitflow:** el trabajo se estructuró en tres tipos de ramas:
-  - `main`: rama estable, solo recibe merges desde `develop` al cierre de cada
-    sprint.
-  - `develop`: rama de integración; todas las `feature/*` se fusionan aquí.
-  - `feature/*`: una rama por historia o cambio puntual, con Pull Request
-    dirigido a `develop` para revisión antes del merge.
-- **Convenciones de commits:** todos los mensajes siguen
+  - **HU-07** (Daniel): gestión de eventos (crear, editar y eliminar).
+  - **HU-08** (Daniel): gestión de usuarios (listado, activar y desactivar).
+  - **HU-09** (Daniel): reporte de ventas por categoría de evento.
+- **Gitflow:** `main` contiene las versiones entregadas, `develop` integra el
+  trabajo del equipo y cada cambio se hace en una rama `feature/*`, `fix/*` o
+  `docs/*` que se integra a `develop` mediante Pull Request. Durante el sprint,
+  tres Pull Requests (#41, #44 y #45) se integraron por error directamente en
+  `main` (la base por defecto de GitHub); se corrigió sincronizando `develop`
+  y, al cierre, se activó la protección de `main`: solo acepta cambios por
+  Pull Request y con el build de GitHub Actions en verde.
+- **Convenciones de commits:**
   [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`,
-  `fix:`, `docs:`, `refactor:`, `chore:`), un cambio por commit y un archivo
-  o cambio lógico por Pull Request cuando aplica.
-- **Pull Requests y revisión:** cada `feature/*` se abrió como PR contra
-  `develop`, con Eddie como revisor asignado según los roles de gestión
-  ([`docs/decisiones-sprint7-8.md`](./docs/decisiones-sprint7-8.md)). El
-  historial de PRs queda visible en la pestaña
-  [Pull Requests](../../pulls?q=is%3Apr) del repositorio.
+  `fix:`, `docs:`, `refactor:`, `chore:`, `style:`, `test:`, `ci:`).
+- **Integración continua:** GitHub Actions compila el proyecto y corre las
+  pruebas en cada Pull Request.
 
 ## Diagramas UML
 
 Todos los diagramas se encuentran en la carpeta [`diagramasUML/`](./diagramasUML):
 
 - [Diagrama de clases](./diagramasUML/diagrama-clases.jpg)
-- [Diagrama de clases de la capa DAO](./diagramasUML/diagrama-clases-dao.jpeg)
-- [Diagrama de clases de la interfaz gráfica](./diagramasUML/diagrama-clases-gui.jpg)
+- [Diagrama de clases de la persistencia (DAO, PostgreSQL y Flyway)](./diagramasUML/diagrama-clases-dao.jpg)
+- [Diagrama de clases de la interfaz gráfica, controladores e hilos](./diagramasUML/diagrama-clases-gui.jpg)
 - [Diagrama de secuencia](./diagramasUML/diagrama-secuencia.jpg)
 - [Diagrama de actividad](./diagramasUML/diagrama-actividad.jpg)
 
 ## Documentación
 
-La documentación del proyecto vive en la carpeta [`docs/`](./docs):
+- [**Documentación Javadoc**](./documentacion/index.html) — referencia de
+  todas las clases del proyecto, generada con `./gradlew javadoc` en la
+  carpeta [`documentacion/`](./documentacion).
+
+La documentación complementaria vive en la carpeta [`docs/`](./docs):
 
 - [**Manual de usuario**](./docs/manual-usuario.md) — cómo usar la app
   desde la GUI, paso a paso (cliente y administrador).
@@ -166,8 +200,8 @@ Proyecto_Gestion_Boletos_POO/
 ├── docker-compose.yml
 ├── diagramasUML/          Diagramas UML en JPG
 ├── wireframes/            Wireframes de la interfaz en JPG
-├── docs/
-│   └── decisiones-sprint7-8.md
+├── documentacion/         Documentación generada con Javadoc
+├── docs/                  Manuales, ADRs y decisiones del sprint
 └── src/
     └── main/
         ├── java/
@@ -178,21 +212,23 @@ Proyecto_Gestion_Boletos_POO/
         │   │                      EventosController, CompraController,
         │   │                      HistorialController, PanelAdminController
         │   ├── dao/               DAO
-        │   ├── hilos/             HiloMensaje
+        │   ├── hilos/             EjecutorTareas, HiloMensaje
         │   ├── model/             Usuario, Administrador, Comprador,
         │   │                      CompradorVIP, Evento, Compra,
-        │   │                      GestorUsuarios, HistorialCompras,
-        │   │                      SistemaGestionBoletos
+        │   │                      DescuentoConfig, GestorUsuarios,
+        │   │                      HistorialCompras, SistemaGestionBoletos
         │   ├── patrones/
         │   │   └── strategy/      Descuento, DescuentoFijo, DescuentoPorcentaje
         │   ├── persistencia/      ConexionBD, ConfigBD, UsuarioPersistencia,
         │   │                      EventoPersistencia, CompraPersistencia,
+        │   │                      DescuentoPersistencia, AuditoriaPersistencia,
         │   │                      RegistroCompra
         │   ├── ui/                ConsolaUI
-        │   └── util/              Alertas, Navegacion
+        │   └── util/              Alertas, Navegacion, Sesion, PasswordHasher
         └── resources/             Login, Registro, Eventos, Compra,
                                    Historial y PanelAdmin (.fxml),
-                                   estilos.css
+                                   estilos.css, logback.xml y
+                                   db/migration (Flyway)
 ```
 
 > **Nota sobre la persistencia:** desde el quinto entregable, el paquete
@@ -257,18 +293,3 @@ colaborativo:
 
 Los mensajes de commit siguen el formato de Conventional Commits (`feat:`,
 `docs:`, `style:`, `refactor:`, `chore:`, `build:`).
-
-## Sprint 2 (Semanas 7 y 8)
-
-Este sprint cubre del 21 de septiembre al 4 de octubre. Las historias
-pendientes son HU-05, HU-07 y HU-08, distribuidas entre Xiomara
-(Compra/Reserva) y Daniel (Administración/Reportes). Eddie coordina el
-seguimiento del tablero y la revisión de Pull Requests.
-
-Ver el detalle de planificación, prioridades y riesgos en
-[`docs/decisiones-sprint7-8.md`](./docs/decisiones-sprint7-8.md) y en el
-tablero del proyecto en GitHub Projects.
-
-**Estado al cierre de la semana 7:** HU-01 a HU-04, HU-06 y HU-09
-completadas. Las pantallas de HU-05, HU-07 y HU-08 están implementadas en
-JavaFX; su conexión con la base de datos se completa en la semana 8.
