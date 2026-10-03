@@ -2,16 +2,24 @@ package controladores;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import model.Comprador;
+import model.HistorialCompras;
+import persistencia.CompraPersistencia;
 import persistencia.RegistroCompra;
 import util.Alertas;
 import util.Navegacion;
+import util.Sesion;
 
 /** Controlador de la pantalla de historial de compras ({@code Historial.fxml}). */
 public class HistorialController {
@@ -39,8 +47,12 @@ public class HistorialController {
   @FXML
   private TableColumn<RegistroCompra, String> colTotal;
 
+  private HistorialCompras historial;
+
   @FXML
   private void initialize() {
+    historial = new HistorialCompras(new CompraPersistencia());
+
     colFecha.setCellValueFactory(dato ->
         new SimpleStringProperty(dato.getValue().getFecha().format(FORMATO_FECHA)));
     colEvento.setCellValueFactory(dato ->
@@ -49,7 +61,25 @@ public class HistorialController {
         new SimpleIntegerProperty(dato.getValue().getCantidadBoletos()).asObject());
     colTotal.setCellValueFactory(dato ->
         new SimpleStringProperty(String.format(Locale.US, "$%.2f", dato.getValue().getTotal())));
-    // Semana 8: cargar en la tabla las compras del usuario con HistorialCompras
+
+    cargarCompras();
+  }
+
+  private void cargarCompras() {
+    Comprador comprador = compradorEnSesion();
+    if (comprador == null) {
+      return;
+    }
+    Task<List<RegistroCompra>> tarea = new Task<>() {
+      @Override
+      protected List<RegistroCompra> call() {
+        return historial.buscarPorCliente(comprador.getCorreo());
+      }
+    };
+    tarea.setOnSucceeded(e -> mostrarEnTabla(tarea.getValue()));
+    tarea.setOnFailed(e -> Alertas.mostrarError("Historial de compras",
+        "No se pudo cargar el historial. Verifica que Docker esté en ejecución."));
+    ejecutarEnSegundoPlano(tarea);
   }
 
   @FXML
@@ -65,9 +95,41 @@ public class HistorialController {
           "La fecha \"Desde\" no puede ser posterior a la fecha \"Hasta\".");
       return;
     }
-    // Semana 8: filtrar las compras con HistorialCompras
-    Alertas.mostrarInformacion("Historial de compras",
-        "El filtro por fechas se conectará en la semana 8.");
+    Comprador comprador = compradorEnSesion();
+    if (comprador == null) {
+      return;
+    }
+    Task<List<RegistroCompra>> tarea = new Task<>() {
+      @Override
+      protected List<RegistroCompra> call() {
+        return historial.buscarPorClienteEnRango(comprador.getCorreo(), desde, hasta);
+      }
+    };
+    tarea.setOnSucceeded(e -> mostrarEnTabla(tarea.getValue()));
+    tarea.setOnFailed(e -> Alertas.mostrarError("Historial de compras",
+        "No se pudo filtrar el historial. Verifica que Docker esté en ejecución."));
+    ejecutarEnSegundoPlano(tarea);
+  }
+
+  private void mostrarEnTabla(List<RegistroCompra> compras) {
+    ObservableList<RegistroCompra> datos = FXCollections.observableArrayList(compras);
+    tablaCompras.setItems(datos);
+  }
+
+  private Comprador compradorEnSesion() {
+    if (!(Sesion.getUsuarioActual() instanceof Comprador comprador)) {
+      Alertas.mostrarError("Historial de compras",
+          "No hay una sesión de cliente activa. Vuelve a iniciar sesión.");
+      Navegacion.cambiarPantalla("Login.fxml", "Iniciar Sesión");
+      return null;
+    }
+    return comprador;
+  }
+
+  private void ejecutarEnSegundoPlano(Task<?> tarea) {
+    Thread hilo = new Thread(tarea);
+    hilo.setDaemon(true);
+    hilo.start();
   }
 
   @FXML

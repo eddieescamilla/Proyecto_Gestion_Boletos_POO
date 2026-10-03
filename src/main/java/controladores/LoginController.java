@@ -8,6 +8,7 @@ import model.GestorUsuarios;
 import model.Usuario;
 import util.Alertas;
 import util.Navegacion;
+import util.Sesion;
 
 /**
  * Controlador de la pantalla de inicio de sesión ({@code Login.fxml}).
@@ -46,6 +47,8 @@ public class LoginController {
           "Correo o contraseña incorrectos, o la cuenta está inactiva.");
       return;
     }
+
+    Sesion.setUsuarioActual(usuario);
 
     if (usuario.getRol() == RolUsuario.ADMINISTRADOR) {
       Navegacion.cambiarPantalla("PanelAdmin.fxml", "Panel de Administración");
