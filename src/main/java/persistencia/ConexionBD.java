@@ -6,21 +6,28 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.PasswordHasher;
 
 /** Administra la conexión única a PostgreSQL y prepara las tablas y los datos iniciales. */
 public class ConexionBD {
+
+  private static final Logger log = LoggerFactory.getLogger(ConexionBD.class);
 
   private static Connection conexion;
 
   public static Connection obtenerConexion() {
     if (conexion == null) {
       try {
+        log.info("Abriendo conexion a la base de datos");
         conexion = DriverManager.getConnection(
             ConfigBD.url(), ConfigBD.usuario(), ConfigBD.clave());
         crearTablas(conexion);
         sembrarDatosIniciales(conexion);
+        log.info("Conexion lista y esquema aplicado");
       } catch (SQLException e) {
+        log.error("Fallo la conexion a la base de datos", e);
         throw new RuntimeException("No se pudo conectar a la base de datos.", e);
       }
     }
@@ -58,6 +65,15 @@ public class ConexionBD {
           "tipo TEXT NOT NULL, " +
           "valor REAL NOT NULL, " +
           "activo INTEGER NOT NULL)");
+
+      statement.execute("CREATE TABLE IF NOT EXISTS auditoria (" +
+          "id SERIAL PRIMARY KEY, " +
+          "fecha_hora TEXT NOT NULL, " +
+          "actor TEXT NOT NULL, " +
+          "accion TEXT NOT NULL, " +
+          "entidad TEXT NOT NULL, " +
+          "referencia TEXT, " +
+          "detalle TEXT)");
     }
   }
 

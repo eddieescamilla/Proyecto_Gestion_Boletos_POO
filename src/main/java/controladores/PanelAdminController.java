@@ -20,6 +20,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import model.Evento;
 import model.Usuario;
+import persistencia.AuditoriaPersistencia;
 import persistencia.CompraPersistencia;
 import persistencia.EventoPersistencia;
 import persistencia.UsuarioPersistencia;
@@ -40,6 +41,7 @@ public class PanelAdminController {
   private EventoPersistencia eventoPersistencia;
   private UsuarioPersistencia usuarioPersistencia;
   private CompraPersistencia compraPersistencia;
+  private AuditoriaPersistencia auditoria;
 
   // ===== Pestana Eventos =====
   @FXML
@@ -113,8 +115,15 @@ public class PanelAdminController {
     eventoPersistencia = new EventoPersistencia();
     usuarioPersistencia = new UsuarioPersistencia();
     compraPersistencia = new CompraPersistencia();
+    auditoria = new AuditoriaPersistencia();
     cargarEventos();
     cargarUsuarios();
+  }
+
+  private String actor() {
+    return Sesion.getUsuarioActual() != null
+        ? Sesion.getUsuarioActual().getCorreo()
+        : "anonimo";
   }
 
   /** Corre una tarea en un hilo demonio para no bloquear la interfaz. */
@@ -272,6 +281,7 @@ public class PanelAdminController {
     tarea.setOnSucceeded(evento -> {
       if (Boolean.TRUE.equals(tarea.getValue())) {
         tablaEventos.getItems().add(nuevo);
+        auditoria.registrar(actor(), "AGREGAR_EVENTO", "EVENTO", nombre, null);
         Alertas.mostrarInformacion("Agregar evento", "Evento agregado correctamente.");
       } else {
         Alertas.mostrarAdvertencia("Agregar evento",
@@ -316,6 +326,8 @@ public class PanelAdminController {
     tarea.setOnSucceeded(evento -> {
       int indice = tablaEventos.getItems().indexOf(seleccionado);
       tablaEventos.getItems().set(indice, actualizado);
+      auditoria.registrar(actor(), "EDITAR_EVENTO", "EVENTO", actualizado.getNombreEvento(),
+          null);
       Alertas.mostrarInformacion("Editar evento", "Cambios guardados correctamente.");
     });
     tarea.setOnFailed(evento ->
@@ -346,6 +358,8 @@ public class PanelAdminController {
     };
     tarea.setOnSucceeded(evento -> {
       tablaEventos.getItems().remove(seleccionado);
+      auditoria.registrar(actor(), "ELIMINAR_EVENTO", "EVENTO", seleccionado.getNombreEvento(),
+          null);
       Alertas.mostrarInformacion("Eliminar evento", "Evento eliminado correctamente.");
     });
     tarea.setOnFailed(evento ->
@@ -387,6 +401,9 @@ public class PanelAdminController {
     tarea.setOnSucceeded(evento -> {
       seleccionado.setActivo(nuevoEstado);
       tablaUsuarios.refresh();
+      auditoria.registrar(actor(),
+          nuevoEstado ? "ACTIVAR_USUARIO" : "DESACTIVAR_USUARIO",
+          "USUARIO", seleccionado.getCorreo(), null);
       Alertas.mostrarInformacion(accion, "Estado del usuario actualizado.");
     });
     tarea.setOnFailed(evento ->
@@ -411,7 +428,11 @@ public class PanelAdminController {
         return compraPersistencia.generarReportePorCategoria(categoria.getValorBD());
       }
     };
-    tarea.setOnSucceeded(evento -> txtReporte.setText(tarea.getValue()));
+    tarea.setOnSucceeded(evento -> {
+      txtReporte.setText(tarea.getValue());
+      auditoria.registrar(actor(), "GENERAR_REPORTE", "REPORTE",
+          categoria.getValorBD(), null);
+    });
     tarea.setOnFailed(evento ->
         Alertas.mostrarError("Generar reporte", "No se pudo generar el reporte."));
     ejecutarEnSegundoPlano(tarea);
