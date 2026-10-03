@@ -91,7 +91,16 @@ public class AuditoriaPersistencia {
     return entradas;
   }
 
-  /** Entrada individual de auditoría, útil para reportes o inspección desde código. */
+  /**
+   * Entrada individual de auditoría, útil para reportes o inspección desde código.
+   *
+   * @param fechaHora fecha y hora en que ocurrió la acción
+   * @param actor correo del usuario que realizó la acción
+   * @param accion acción realizada (por ejemplo {@code CREAR_EVENTO})
+   * @param entidad tipo de dato afectado (por ejemplo {@code EVENTO})
+   * @param referencia identificador del dato afectado
+   * @param detalle información adicional; puede ser {@code null}
+   */
   public record EntradaAuditoria(
       String fechaHora,
       String actor,

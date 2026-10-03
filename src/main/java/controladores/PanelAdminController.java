@@ -37,6 +37,9 @@ import util.Sesion;
  */
 public class PanelAdminController {
 
+  @FXML
+  private Label lblUsuario;
+
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
   private EventoPersistencia eventoPersistencia;
@@ -106,6 +109,8 @@ public class PanelAdminController {
 
   @FXML
   private void initialize() {
+    lblUsuario.setText(Sesion.getUsuarioActual() != null
+        ? Sesion.getUsuarioActual().getNombre() : "Administrador");
     configurarTablaEventos();
     configurarTablaUsuarios();
     cmbCategoria.getItems().setAll(Categoria.values());
@@ -384,6 +389,10 @@ public class PanelAdminController {
     if (seleccionado.isActivo() == nuevoEstado) {
       Alertas.mostrarAdvertencia(accion,
           "El usuario ya está " + (nuevoEstado ? "activo." : "inactivo."));
+      return;
+    }
+    if (!nuevoEstado && seleccionado.getCorreo().equalsIgnoreCase(actor())) {
+      Alertas.mostrarAdvertencia(accion, "No puedes desactivar tu propia cuenta.");
       return;
     }
     Task<Void> tarea = new Task<>() {

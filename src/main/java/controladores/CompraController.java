@@ -29,6 +29,9 @@ import util.Sesion;
  */
 public class CompraController {
 
+  @FXML
+  private Label lblUsuario;
+
   private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
   @FXML
@@ -67,6 +70,7 @@ public class CompraController {
 
   @FXML
   private void initialize() {
+    lblUsuario.setText(Sesion.textoBienvenida());
     cmbMetodoPago.getItems().setAll(TipoPago.values());
     txtCantidad.textProperty().addListener((observable, anterior, nuevo) -> {
       compraEnCurso = null;
@@ -126,24 +130,26 @@ public class CompraController {
 
     Compra compra = new Compra(evento, comprador, cantidad);
     compra.calcularTotal();
-    boolean aplicado;
-    try {
-      aplicado = compra.aplicarDescuento(codigo);
-    } catch (RuntimeException e) {
-      Alertas.mostrarError("Código de descuento",
-          "No se pudo validar el código. Verifica que Docker esté en ejecución.");
-      return;
-    }
-    if (!aplicado) {
-      Alertas.mostrarAdvertencia("Código de descuento",
-          "El código no es válido o ya no está activo.");
-      return;
-    }
-
-    compraEnCurso = compra;
-    totalConDescuento = compra.getTotal();
-    lblTotal.setText(String.format(Locale.US, "Total: $%.2f (descuento aplicado)",
-        totalConDescuento));
+    Task<Boolean> tarea = new Task<>() {
+      @Override
+      protected Boolean call() {
+        return compra.aplicarDescuento(codigo);
+      }
+    };
+    tarea.setOnSucceeded(e -> {
+      if (!tarea.getValue()) {
+        Alertas.mostrarAdvertencia("Código de descuento",
+            "El código no es válido o ya no está activo.");
+        return;
+      }
+      compraEnCurso = compra;
+      totalConDescuento = compra.getTotal();
+      lblTotal.setText(String.format(Locale.US, "Total: $%.2f (descuento aplicado)",
+          totalConDescuento));
+    });
+    tarea.setOnFailed(e -> Alertas.mostrarError("Código de descuento",
+        "No se pudo validar el código. Verifica que Docker esté en ejecución."));
+    EjecutorTareas.ejecutar(tarea);
   }
 
   @FXML
