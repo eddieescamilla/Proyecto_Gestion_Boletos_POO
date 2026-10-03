@@ -25,6 +25,7 @@ import persistencia.EventoPersistencia;
 import persistencia.UsuarioPersistencia;
 import util.Alertas;
 import util.Navegacion;
+import util.Sesion;
 
 /**
  * Controlador del panel de administración ({@code PanelAdmin.fxml}).
@@ -419,6 +420,7 @@ public class PanelAdminController {
   @FXML
   private void cerrarSesion() {
     if (Alertas.confirmar("Cerrar sesión", "¿Deseas cerrar tu sesión?")) {
+      Sesion.cerrar();
       Navegacion.cambiarPantalla("Login.fxml", "Iniciar Sesión");
     }
   }
