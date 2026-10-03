@@ -7,14 +7,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import model.Comprador;
+import model.Evento;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 /**
  * Pruebas de integración de {@link CompraPersistencia} contra un PostgreSQL real.
  *
- * <p>Verifica que las compras se guardan, se listan y se cuentan en el reporte por
- * categoría, usando correos y nombres de evento únicos para aislar cada prueba.
+ * <p>Como el esquema impone llaves foráneas sobre {@code compras.correo_comprador} y
+ * {@code compras.nombre_evento} (migración V3), cada prueba inserta antes el usuario y
+ * el evento al que apuntará la compra.
  */
 @EnabledIfEnvironmentVariable(named = "BOLETOS_INTEGRATION_TESTS", matches = "1")
 class CompraPersistenciaIT {
@@ -27,16 +30,29 @@ class CompraPersistenciaIT {
     return "IT Evento " + UUID.randomUUID();
   }
 
+  private static String crearUsuario() {
+    UsuarioPersistencia persistencia = new UsuarioPersistencia();
+    String correo = correoAleatorio();
+    persistencia.guardar(new Comprador("IT Comprador", correo, "clave-prueba"));
+    return correo;
+  }
+
+  private static String crearEvento(String categoria) {
+    EventoPersistencia persistencia = new EventoPersistencia();
+    String nombre = nombreEventoAleatorio();
+    persistencia.guardar(new Evento(
+        nombre, categoria, LocalDate.now().plusMonths(1),
+        "Lugar IT", 100, 25.0));
+    return nombre;
+  }
+
   @Test
   void guardarYListarEncuentraLaCompraQueSeAcabaDeGuardar() {
     CompraPersistencia persistencia = new CompraPersistencia();
+    String correo = crearUsuario();
+    String nombreEvento = crearEvento("Musica");
     RegistroCompra registro = new RegistroCompra(
-        correoAleatorio(),
-        nombreEventoAleatorio(),
-        "Musica",
-        3,
-        75.0,
-        LocalDate.now());
+        correo, nombreEvento, "Musica", 3, 75.0, LocalDate.now());
 
     assertTrue(persistencia.guardar(registro));
 
@@ -50,9 +66,10 @@ class CompraPersistenciaIT {
   @Test
   void generarReportePorCategoriaIncluyeLasComprasRegistradas() {
     CompraPersistencia persistencia = new CompraPersistencia();
-    String nombreEvento = nombreEventoAleatorio();
+    String correo = crearUsuario();
+    String nombreEvento = crearEvento("Teatro");
     persistencia.guardar(new RegistroCompra(
-        correoAleatorio(), nombreEvento, "Teatro", 2, 31.0, LocalDate.now()));
+        correo, nombreEvento, "Teatro", 2, 31.0, LocalDate.now()));
 
     String reporte = persistencia.generarReportePorCategoria("Teatro");
     assertNotNull(reporte);
