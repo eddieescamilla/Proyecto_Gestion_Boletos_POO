@@ -41,6 +41,23 @@ reales de la aplicación.
 4. Si la cuenta está desactivada o las credenciales son
    incorrectas, aparece una alerta con el mensaje correspondiente.
 
+### 1.2.1 Recuperar clave
+
+Si olvidaste tu contraseña, desde la pantalla de login presioná
+**¿Olvidaste tu clave?** para abrir la pantalla de recuperación.
+
+1. Ingresá el correo registrado y una clave nueva (mínimo 6
+   caracteres), repetila en el campo de confirmación.
+2. Presioná **Restablecer**. Si el correo existe en la base, la
+   clave se actualiza (hash con BCrypt) y aparece el mensaje
+   "La clave se actualizó correctamente. Ya puedes iniciar sesión".
+3. Presioná **Volver** y entrá con tu correo y la clave nueva.
+
+> Esta pantalla es un MVP: todavía no hay verificación por correo
+> o SMS, por lo que basta con conocer el correo registrado para
+> cambiar la clave. El flujo completo con token out-of-band queda
+> para una iteración futura.
+
 ### 1.3 Ver eventos disponibles
 
 ![Eventos](../wireframes/eventos.jpg)

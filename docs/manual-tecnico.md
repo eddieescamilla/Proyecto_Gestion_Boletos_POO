@@ -48,11 +48,11 @@ Ninguna capa inferior conoce a la superior.
 | `controladores/` | Controladores JavaFX enlazados a los FXML. |
 | `dao/` | Contrato genérico `DAO<T>` con las operaciones CRUD comunes. |
 | `hilos/` | Hilos concurrentes (`HiloMensaje`). |
-| `model/` | Clases del dominio: `Usuario`, `Administrador`, `Comprador`, `CompradorVIP`, `Evento`, `Compra`, `GestorUsuarios`, `HistorialCompras`, `RepositorioCompras`, `SistemaGestionBoletos`. |
+| `model/` | Clases del dominio: `Usuario`, `Administrador`, `Comprador`, `CompradorVIP`, `Evento`, `Compra`, `Asiento`, `DescuentoConfig`, `GestorUsuarios`, `HistorialCompras`, `SistemaGestionBoletos`. |
 | `patrones/strategy/` | Patrón Strategy para descuentos: `Descuento`, `DescuentoFijo`, `DescuentoPorcentaje`. |
-| `persistencia/` | Implementaciones JDBC de los DAO: `UsuarioPersistencia`, `EventoPersistencia`, `CompraPersistencia`; conexión y configuración: `ConexionBD`, `ConfigBD`. |
+| `persistencia/` | Implementaciones JDBC de los DAO: `UsuarioPersistencia`, `EventoPersistencia`, `CompraPersistencia`, `DescuentoPersistencia`, `AuditoriaPersistencia`, `AsientoPersistencia`; conexión y configuración: `ConexionBD`, `ConfigBD`. |
 | `ui/` | Utilidades de entrada por consola (`ConsolaUI`). |
-| `util/` | Utilidades de GUI: `Alertas` (plantillas de alerts), `Navegacion` (cambio de pantallas). |
+| `util/` | Utilidades de GUI: `Alertas` (plantillas de alerts), `Navegacion` (cambio de pantallas), `Sesion` (usuario autenticado), `PasswordHasher` (BCrypt). |
 
 ## Patrones de diseño aplicados
 
@@ -117,15 +117,20 @@ corren en el *JavaFX Application Thread* automáticamente. Ver
 El esquema completo está documentado en
 [`entidad-relacion.md`](./entidad-relacion.md). Resumen:
 
-- `usuarios` (correo PK, nombre, clave, rol, activo)
+- `usuarios` (correo PK, nombre, clave hash BCrypt, rol, activo)
 - `eventos` (nombre_evento PK, categoria, fecha, lugar,
   inventario_disponible, precio_boleto)
 - `compras` (id PK, correo_comprador, nombre_evento,
   categoria_evento, cantidad_boletos, total, fecha)
+- `descuento_config` (codigo PK, tipo, valor, activo) — códigos de
+  descuento configurables desde base de datos (desde 1.6.0).
+- `auditoria` (id PK, actor, accion, detalle, fecha) — bitácora de
+  acciones del Panel de Administración (desde 1.7.0).
+- `asientos` (nombre_evento + numero_asiento PK compuesta, vendido)
+  — data layer para asientos numerados (desde 1.8.0, fase 1 del #60).
 
-Foreign keys, índices y una tabla `auditoria` adicional entran con
-los PRs #62 y #64 (pendientes de revisión al momento de escribir
-esto).
+Las foreign keys y los índices están cubiertos por las migraciones
+V3 y V6 de Flyway en `src/main/resources/db/migration`.
 
 ## Concurrencia
 
@@ -166,14 +171,18 @@ Cubren `catalogo.Categoria`, las estrategias de descuento, `Evento`
 (reglas de inventario y disponibilidad) y `Compra` (cálculo,
 descuentos y confirmación).
 
-No hay pruebas de integración con base de datos todavía. Se
-podrían agregar con Testcontainers para levantar un Postgres real
-en cada corrida del CI.
+Las pruebas de integración de la capa DAO viven en
+`src/test/java/persistencia/*IT.java` (`UsuarioPersistenciaIT`,
+`DescuentoPersistenciaIT`, `CompraPersistenciaIT`) y están gateadas
+por la variable `BOLETOS_INTEGRATION_TESTS=1` que CI setea
+automáticamente contra un servicio de Postgres 16. En local, se
+corren con `BOLETOS_INTEGRATION_TESTS=1 ./gradlew test` con el
+contenedor de Docker arriba.
 
 ## Observabilidad
 
-Con PR #64 mergeado (pendiente), el proyecto usa SLF4J + Logback.
-Configuración en `src/main/resources/logback.xml`:
+El proyecto usa SLF4J + Logback. Configuración en
+`src/main/resources/logback.xml`:
 
 - Consola: nivel `INFO` para paquetes propios, `WARN` en el resto.
 - Archivo: `logs/boletos.log` con rotación diaria, 14 días de
