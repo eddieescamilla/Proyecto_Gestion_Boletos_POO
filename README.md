@@ -93,6 +93,7 @@ fecha) y HU-09 (reporte de ventas por categoría de evento).
 |---|---|---|
 | Inicio de sesión | `Login.fxml` + `LoginController` | `login.jpg` |
 | Registro | `Registro.fxml` + `RegistroController` | `registro.jpg` |
+| Recuperar clave | `RecuperarClave.fxml` + `RecuperarClaveController` | — (agregada en 1.8.0) |
 | Eventos disponibles | `Eventos.fxml` + `EventosController` | `eventos.jpg` |
 | Compra de boletos | `Compra.fxml` + `CompraController` | `compra.jpg` |
 | Historial de compras | `Historial.fxml` + `HistorialController` | `historial.jpg` |
@@ -214,7 +215,7 @@ Proyecto_Gestion_Boletos_POO/
         │   ├── dao/               DAO
         │   ├── hilos/             EjecutorTareas, HiloMensaje
         │   ├── model/             Usuario, Administrador, Comprador,
-        │   │                      CompradorVIP, Evento, Compra,
+        │   │                      CompradorVIP, Evento, Compra, Asiento,
         │   │                      DescuentoConfig, GestorUsuarios,
         │   │                      HistorialCompras, SistemaGestionBoletos
         │   ├── patrones/
@@ -222,7 +223,7 @@ Proyecto_Gestion_Boletos_POO/
         │   ├── persistencia/      ConexionBD, ConfigBD, UsuarioPersistencia,
         │   │                      EventoPersistencia, CompraPersistencia,
         │   │                      DescuentoPersistencia, AuditoriaPersistencia,
-        │   │                      RegistroCompra
+        │   │                      AsientoPersistencia, RegistroCompra
         │   ├── ui/                ConsolaUI
         │   └── util/              Alertas, Navegacion, Sesion, PasswordHasher
         └── resources/             Login, Registro, Eventos, Compra,
@@ -275,13 +276,15 @@ el sistema operativo.
 
 **Usuario administrador de prueba:** `admin@boletos.com` / `admin123`
 
-> Desde la 1.7.3 el administrador se siembra solo si la variable de entorno
+> Desde la 1.8.0 el administrador se siembra solo si la variable de entorno
 > `BOLETOS_ADMIN_PASSWORD` está definida (en el sistema o en el archivo
 > `.env`). El `.env.example` ya la trae con `admin123` para desarrollo local;
 > para producción déjala en blanco o quítala para que la app arranque sin
 > credenciales conocidas, y crea el admin con un script propio.
 
 Para entrar como cliente, crea una cuenta desde el botón **Registrarme**.
+Si olvidas tu clave, usa el botón **¿Olvidaste tu clave?** del login para
+restablecerla ingresando tu correo y una clave nueva.
 
 ### 3. Ejecutar la versión por consola (opcional)
 
